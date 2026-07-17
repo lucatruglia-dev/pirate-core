@@ -1,0 +1,15 @@
+main: lucatruglia.piratecore.PirateCore
+version: 1.0.0
+name: PirateCore
+author: lucatruglia
+api-version: 1.21
+softdepend: [PlaceholderAPI]
+
+
+commands:
+  klevel:
+    description: "level command"
+    usage: "/klevel"
+  kbar:
+    description: "level command"
+    usage: "/kbar"
