@@ -13,17 +13,18 @@ import java.util.UUID;
  * Gestisce la connessione SQLite e le operazioni CRUD per i dati dei player.
  * 
  * Inizializzazione (in PirateCore.onEnable()):
- *   DatabaseManager.getInstance().init(this);
+ * DatabaseManager.getInstance().init(this);
  * 
  * Chiusura (in PirateCore.onDisable()):
- *   DatabaseManager.getInstance().close();
+ * DatabaseManager.getInstance().close();
  */
 public class DatabaseManager {
 
     private static DatabaseManager instance;
     private Connection connection;
 
-    private DatabaseManager() {}
+    private DatabaseManager() {
+    }
 
     public static DatabaseManager getInstance() {
         if (instance == null) {
@@ -78,7 +79,8 @@ public class DatabaseManager {
 
     private void ensureInitialized() {
         if (connection == null) {
-            throw new IllegalStateException("DatabaseManager non inizializzato. Chiamare init() prima di usare i metodi CRUD.");
+            throw new IllegalStateException(
+                    "DatabaseManager non inizializzato. Chiamare init() prima di usare i metodi CRUD.");
         }
     }
 
@@ -88,13 +90,13 @@ public class DatabaseManager {
 
     private void createTables() throws SQLException {
         String sql = """
-            CREATE TABLE IF NOT EXISTS player_data (
-                uuid       TEXT PRIMARY KEY,
-                name       TEXT NOT NULL,
-                total_xp   INTEGER NOT NULL DEFAULT 0,
-                level      INTEGER NOT NULL DEFAULT 1
-            )
-            """;
+                CREATE TABLE IF NOT EXISTS player_data (
+                    uuid       TEXT PRIMARY KEY,
+                    name       TEXT NOT NULL,
+                    total_xp   INTEGER NOT NULL DEFAULT 0,
+                    level      INTEGER NOT NULL DEFAULT 1
+                )
+                """;
 
         try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate(sql);
@@ -122,11 +124,10 @@ public class DatabaseManager {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(new PlayerData(
-                        UUID.fromString(rs.getString("uuid")),
-                        rs.getString("name"),
-                        rs.getLong("total_xp"),
-                        rs.getInt("level")
-                    ));
+                            UUID.fromString(rs.getString("uuid")),
+                            rs.getString("name"),
+                            rs.getLong("total_xp"),
+                            rs.getInt("level")));
                 }
             }
         } catch (SQLException e) {
@@ -154,11 +155,10 @@ public class DatabaseManager {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(new PlayerData(
-                        UUID.fromString(rs.getString("uuid")),
-                        rs.getString("name"),
-                        rs.getLong("total_xp"),
-                        rs.getInt("level")
-                    ));
+                            UUID.fromString(rs.getString("uuid")),
+                            rs.getString("name"),
+                            rs.getLong("total_xp"),
+                            rs.getInt("level")));
                 }
             }
         } catch (SQLException e) {
@@ -177,19 +177,19 @@ public class DatabaseManager {
         this.ensureInitialized();
 
         String sql = """
-            INSERT INTO player_data (uuid, name, total_xp, level)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(uuid) DO UPDATE SET
-                name     = excluded.name,
-                total_xp = excluded.total_xp,
-                level    = excluded.level
-            """;
+                INSERT INTO player_data (uuid, name, total_xp, level)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(uuid) DO UPDATE SET
+                    name     = excluded.name,
+                    total_xp = excluded.total_xp,
+                    level    = excluded.level
+                """;
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, data.uuid().toString());
             ps.setString(2, data.name());
-            ps.setLong(   3, data.totalXp());
-            ps.setInt(    4, data.level());
+            ps.setLong(3, data.totalXp());
+            ps.setInt(4, data.level());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -229,6 +229,34 @@ public class DatabaseManager {
 
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Elimina un player dal database tramite UUID.
+     * 
+     * @param uuid UUID del player da eliminare
+     * @return true se il player è stato eliminato con successo, false se non
+     *         esisteva o c'è stato un errore
+     */
+    public boolean deletePlayer(UUID uuid) {
+        this.ensureInitialized();
+
+        String sql = "DELETE FROM player_data WHERE uuid = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            int rowsAffected = ps.executeUpdate();
+
+            if (rowsAffected > 0) {
+                return true;
+            } else {
+                // Nessuna riga eliminata (player non trovato)
+                return false;
             }
         } catch (SQLException e) {
             e.printStackTrace();

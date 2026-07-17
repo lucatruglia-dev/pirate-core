@@ -1,2 +1,11 @@
 multiplier: 1.2
 firstLevelXP: 1000
+
+
+conditions:
+  BLOCKS_MINED:
+    amount: 100
+    reward: 50
+
+
+

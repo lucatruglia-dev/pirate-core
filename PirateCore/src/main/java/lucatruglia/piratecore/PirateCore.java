@@ -9,6 +9,7 @@ import lucatruglia.piratecore.managers.DatabaseManager;
 import lucatruglia.piratecore.managers.LevelManager;
 import lucatruglia.piratecore.managers.PlayerManager;
 import lucatruglia.piratecore.managers.PluginManager;
+import lucatruglia.piratecore.managers.RewardManager;
 import lucatruglia.piratecore.placeholders.PirateCoreExpansion;
 import lucatruglia.piratecore.command.BossBarCommand;
 import lucatruglia.piratecore.command.LevelCommand;
@@ -38,6 +39,7 @@ public class PirateCore extends JavaPlugin {
         DatabaseManager.getInstance().initialize();
         PlayerManager.getInstance().initialize();
         LevelManager.getInstance().initialize();
+        RewardManager.getInstance().initialize();
 
         getCommand("klevel").setExecutor(new LevelCommand());
         getCommand("kbar").setExecutor(new BossBarCommand());

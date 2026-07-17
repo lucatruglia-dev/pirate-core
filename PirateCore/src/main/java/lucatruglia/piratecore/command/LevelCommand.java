@@ -38,7 +38,20 @@ public class LevelCommand implements CommandExecutor {
         else if (args[0].equalsIgnoreCase("addxp"))
             addXPSubCommand(player, args[1], args[2]);
 
+        // "/klevel remove <name>"
+        else if (args[0].equalsIgnoreCase("remove"))
+            removePlayerSubCommand(player, args[1]);
+
         return true;
+    }
+
+    private void removePlayerSubCommand(Player player, String targetPlayerName){
+        boolean status = PlayerManager.getInstance().removePlayerData(PirateCore.get().getServer().getPlayer(targetPlayerName));
+        if(!status){
+            player.sendMessage(targetPlayerName + " non esiste.");
+            return;
+        }
+        player.sendMessage("Rimosso " + targetPlayerName + " dal db");
     }
 
     private void getInfoSubCommand(Player player) {
@@ -56,41 +69,25 @@ public class LevelCommand implements CommandExecutor {
         player.sendMessage("FIRST LEVEL XP: " + LevelManager.getInstance().getfirstLevelXP());
         player.sendMessage("===============");
         
-        showBar(data, player, xpNeededForLevel);
+        PlayerManager.getInstance().showBar(player);
         
     }
 
     private void setXPSubCommand(Player player, String targetPlayer, String amount) {
         Player targetP = PirateCore.get().getServer().getPlayer(targetPlayer);
         PlayerData pData = PlayerManager.getInstance().setXP(targetP, Integer.parseInt(amount));
-        long xpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(pData.level() + 1);
 
         player.sendMessage("(" + targetPlayer + ") -> settato xp a " + amount);
-
-        showBar(pData, player, xpNeededForLevel);
     }
 
     private void addXPSubCommand(Player player, String targetPlayer, String amount) {
         Player targetP = PirateCore.get().getServer().getPlayer(targetPlayer);
         PlayerData pData = PlayerManager.getInstance().addXP(targetP, Integer.parseInt(amount));
-        long xpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(pData.level() + 1);
 
         player.sendMessage("(" + targetPlayer + ") -> aggiunto xp: " + amount);
-        showBar(pData, player, xpNeededForLevel);
     }
 
 
-    private void showBar(PlayerData data, Player player, long xpNeededForLevel){
-        BossBarManager.getInstance().showTimedBar(
-                player,
-                "" + data.level() + "             " + data.totalXp() + "/"
-                        + LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1) + "             "
-                        + (data.level() + 1),
-                ((double) data.totalXp() / xpNeededForLevel),
-                BarColor.GREEN,
-                BarStyle.SOLID,
-                5 // 30 secondi, invisibili al giocatore
-        );
-    }
+    
 
 }
