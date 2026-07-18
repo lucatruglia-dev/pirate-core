@@ -49,6 +49,11 @@ public class RewardManager {
         int amount = data.getInt(basePath + ".amount");
         int reward = data.getInt(basePath + ".reward");
 
+        if(PermissionManager.getPerms().playerInGroup(player, "vip")){
+            reward = (int) Math.round(reward * 1.5);
+        }
+        
+
         if (currentValue >= amount && currentValue % amount == 0) {
             PlayerManager.getInstance().addXP(player, reward);
             Logs.sendLog("RewardManager", player.getName() + " ha ricevuto " + reward + "XP per " + conditionKey);

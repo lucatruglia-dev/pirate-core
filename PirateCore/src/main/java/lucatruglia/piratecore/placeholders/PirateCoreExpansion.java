@@ -6,6 +6,8 @@ import lucatruglia.piratecore.models.PlayerData;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
 import java.util.Optional;
@@ -30,6 +32,20 @@ import java.util.Optional;
  *   %piratecore_level_"Kcalu_"%
  */
 public class PirateCoreExpansion extends PlaceholderExpansion {
+
+
+    public static void enable(JavaPlugin plugin) {
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            boolean registered = new PirateCoreExpansion().register();
+            if (registered) {
+                plugin.getLogger().info("PlaceholderAPI expansion registered successfully!");
+            } else {
+                plugin.getLogger().warning("Failed to register PlaceholderAPI expansion!");
+            }
+        } else {
+            plugin.getLogger().warning("PlaceholderAPI not found! Placeholders will not work.");
+        }
+    }
 
     @Override
     public String getIdentifier() {

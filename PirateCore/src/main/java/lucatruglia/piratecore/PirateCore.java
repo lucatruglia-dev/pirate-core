@@ -1,14 +1,6 @@
 package lucatruglia.piratecore;
 
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import lucatruglia.piratecore.managers.PluginManager;
-import lucatruglia.piratecore.placeholders.PirateCoreExpansion;
-import lucatruglia.piratecore.command.BossBarCommand;
-import lucatruglia.piratecore.command.LevelCommand;
-import lucatruglia.piratecore.listeners.BossBarListener;
-import lucatruglia.piratecore.listeners.PlayerListener;
 
 public class PirateCore extends JavaPlugin {
 
@@ -23,13 +15,11 @@ public class PirateCore extends JavaPlugin {
 
         instance = this;
 
-        this.enablePlaceholderAPI();
-        PluginManager.getInstance().initialize(this);
+        Loader.loadExtensions(this);
 
-        getCommand("klevel").setExecutor(new LevelCommand());
-        getCommand("kbar").setExecutor(new BossBarCommand());
-        getServer().getPluginManager().registerEvents(new PlayerListener(), this);
-        getServer().getPluginManager().registerEvents(new BossBarListener(), this);
+        Loader.loadManagers(this);
+        Loader.loadListeners(this);
+        Loader.loadCommands(this);
 
         getLogger().info("PirateCore has been enabled!");
     }
@@ -39,18 +29,8 @@ public class PirateCore extends JavaPlugin {
         getLogger().info("PirateCore has been disabled!");
     }
 
-    private void enablePlaceholderAPI() {
-        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            // Crea e registra la tua espansione
-            boolean registered = new PirateCoreExpansion().register();
-            if (registered) {
-                getLogger().info("PlaceholderAPI expansion registered successfully!");
-            } else {
-                getLogger().warning("Failed to register PlaceholderAPI expansion!");
-            }
-        } else {
-            getLogger().warning("PlaceholderAPI not found! Placeholders will not work.");
-        }
-    }
+    
+
+    
 
 }
