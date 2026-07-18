@@ -3,13 +3,7 @@ package lucatruglia.piratecore;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import lucatruglia.piratecore.managers.BossBarManager;
-import lucatruglia.piratecore.managers.ConfigManager;
-import lucatruglia.piratecore.managers.DatabaseManager;
-import lucatruglia.piratecore.managers.LevelManager;
-import lucatruglia.piratecore.managers.PlayerManager;
 import lucatruglia.piratecore.managers.PluginManager;
-import lucatruglia.piratecore.managers.RewardManager;
 import lucatruglia.piratecore.placeholders.PirateCoreExpansion;
 import lucatruglia.piratecore.command.BossBarCommand;
 import lucatruglia.piratecore.command.LevelCommand;
@@ -29,24 +23,13 @@ public class PirateCore extends JavaPlugin {
 
         instance = this;
 
-        // Initialize managers
-
         this.enablePlaceholderAPI();
-
-        BossBarManager.getInstance().initialize(this);
-        PluginManager.getInstance().initialize();
-        ConfigManager.getInstance().initialize();
-        DatabaseManager.getInstance().initialize();
-        PlayerManager.getInstance().initialize();
-        LevelManager.getInstance().initialize();
-        RewardManager.getInstance().initialize();
+        PluginManager.getInstance().initialize(this);
 
         getCommand("klevel").setExecutor(new LevelCommand());
         getCommand("kbar").setExecutor(new BossBarCommand());
-        // Register listeners
         getServer().getPluginManager().registerEvents(new PlayerListener(), this);
         getServer().getPluginManager().registerEvents(new BossBarListener(), this);
-
 
         getLogger().info("PirateCore has been enabled!");
     }

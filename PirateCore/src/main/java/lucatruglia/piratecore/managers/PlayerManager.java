@@ -3,8 +3,6 @@ package lucatruglia.piratecore.managers;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 
 import lucatruglia.piratecore.models.PlayerData;
@@ -26,13 +24,13 @@ public class PlayerManager {
 
     public PlayerData addXP(Player player, int amount){
         Logs.sendSuccessMessageToPlayer(player, "XP", "Congratulazioni! Hai guadagnato "+amount+ "XP");
-        PlayerManager.getInstance().showBar(player);
+        BossBarManager.getInstance().showPlayerLevelBar(player);
         return this.setXP_p(player, amount, true);
     }
     
     public PlayerData setXP(Player player, int amount){
         Logs.sendSuccessMessageToPlayer(player, "XP", "XP impostato a "+amount);
-        PlayerManager.getInstance().showBar(player);
+        BossBarManager.getInstance().showPlayerLevelBar(player);
         return this.setXP_p(player, amount, false);
     } 
  
@@ -90,20 +88,7 @@ public class PlayerManager {
     }
 
 
-    public void showBar(Player player){
-        PlayerData data = PlayerManager.getInstance().getInfo(player);
-        long xpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1);
-        BossBarManager.getInstance().showTimedBar(
-                player,
-                "" + data.level() + "             " + data.totalXp() + "/"
-                        + LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1) + "             "
-                        + (data.level() + 1),
-                ((double) data.totalXp() / xpNeededForLevel),
-                BarColor.GREEN,
-                BarStyle.SOLID,
-                5 // 30 secondi, invisibili al giocatore
-        );
-    }
+
     
     
 }

@@ -46,17 +46,11 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
 
         String placeholder = "%cmi_user_stats_blocks_mined%";
-        
         String parsedValue = PlaceholderAPI.setPlaceholders(player, placeholder);
-
         int blocks_mined = Integer.parseInt(parsedValue);
 
-        int requirement = (int) RewardManager.getInstance().getCondition("BLOCKS_MINED.amount");
-        int reward = (int) RewardManager.getInstance().getCondition("BLOCKS_MINED.reward");
-
-        if (blocks_mined%requirement==0){
-            PlayerManager.getInstance().addXP(player, reward);
-        }
+        // La logica di valutazione e ricompensa è stata spostata in RewardManager
+        RewardManager.getInstance().evaluateMilestoneCondition(player, "BLOCKS_MINED", blocks_mined);
     }
 
 

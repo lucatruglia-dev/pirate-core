@@ -8,6 +8,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
+import lucatruglia.piratecore.models.PlayerData;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -293,6 +295,28 @@ public class BossBarManager {
         if (plugin != null) {
             plugin.getLogger().info("Tutte le BossBar sono state pulite!");
         }
+    }
+    
+    /**
+     * Mostra una BossBar con le statistiche del livello del giocatore.
+     * (Spostato da PlayerManager per separare UI dalla logica XP)
+     */
+    public void showPlayerLevelBar(Player player){
+        if (player == null) return;
+        
+        PlayerData data = PlayerManager.getInstance().getInfo(player);
+        long xpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1);
+        
+        this.showTimedBar(
+            player,
+            "" + data.level() + "             " + data.totalXp() + "/"
+                + LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1) + "             "
+                + (data.level() + 1),
+            ((double) data.totalXp() / xpNeededForLevel),
+            BarColor.GREEN,
+            BarStyle.SOLID,
+            5
+        );
     }
     
     /**

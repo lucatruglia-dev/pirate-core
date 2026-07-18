@@ -69,7 +69,7 @@ public class LevelCommand implements CommandExecutor {
         player.sendMessage("FIRST LEVEL XP: " + LevelManager.getInstance().getfirstLevelXP());
         player.sendMessage("===============");
         
-        PlayerManager.getInstance().showBar(player);
+        BossBarManager.getInstance().showPlayerLevelBar(player);
         
     }
 
