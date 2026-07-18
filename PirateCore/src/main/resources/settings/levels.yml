@@ -1,6 +1,10 @@
 multiplier: 1.2
 firstLevelXP: 1000
 
+reward_multiplier:
+  default: 1.0
+  vip: 1.5
+  owner: 3
 
 conditions:
   BLOCKS_MINED:

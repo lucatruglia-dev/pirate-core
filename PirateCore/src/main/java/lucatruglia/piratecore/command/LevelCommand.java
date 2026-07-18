@@ -1,7 +1,8 @@
 package lucatruglia.piratecore.command;
 
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -11,7 +12,9 @@ import lucatruglia.piratecore.PirateCore;
 import lucatruglia.piratecore.managers.BossBarManager;
 import lucatruglia.piratecore.managers.LevelManager;
 import lucatruglia.piratecore.managers.PlayerManager;
+import lucatruglia.piratecore.models.ListMessage;
 import lucatruglia.piratecore.models.PlayerData;
+import lucatruglia.piratecore.models.ListMessage.Row;
 import lucatruglia.piratecore.utils.Logs;
 
 public class LevelCommand implements CommandExecutor {
@@ -59,15 +62,15 @@ public class LevelCommand implements CommandExecutor {
 
         long xpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1);
 
-        player.sendMessage("===============");
-        player.sendMessage("Nome: " + data.name());
-        player.sendMessage(
-                "XP: " + data.totalXp() + "/" + xpNeededForLevel);
-        player.sendMessage("LEVEL: " + data.level());
-        player.sendMessage("===============");
-        player.sendMessage("MULTIPLIER: " + LevelManager.getInstance().getMultiplier());
-        player.sendMessage("FIRST LEVEL XP: " + LevelManager.getInstance().getfirstLevelXP());
-        player.sendMessage("===============");
+        
+
+        Logs.sendListMessageToPlayer(player, 
+            new ListMessage("Informazioni", new ArrayList<Row>(List.of(
+                new Row("Nome", data.name()),
+                new Row("XP", ""+data.totalXp() + "/" + xpNeededForLevel),
+                new Row("Level", ""+data.level())
+            )))
+        );
         
         BossBarManager.getInstance().showPlayerLevelBar(player);
         
