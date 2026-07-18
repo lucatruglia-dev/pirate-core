@@ -30,12 +30,12 @@ public class LevelManager {
 
     public long getTotalXpNeededForLevel(int level) {
         if (level <= 1)
-            return firstLevelXP; // Per il livello 1 servono 1000 XP totali
+            return 0;
 
         long totalXp = 0;
         long xpNeeded = firstLevelXP;
 
-        for (int i = 1; i <= level; i++) {
+        for (int i = 1; i < level; i++) {
             totalXp += xpNeeded;
             xpNeeded = (long) (xpNeeded * multiplier);
         }
@@ -45,10 +45,10 @@ public class LevelManager {
 
     public long getXpNeededForLevel(int level) {
         if (level <= 1)
-            return firstLevelXP;
+            return 0;
 
         long xpNeeded = firstLevelXP;
-        for (int i = 1; i < level; i++) {
+        for (int i = 2; i < level; i++) {
             xpNeeded = (long) (xpNeeded * multiplier);
         }
         return xpNeeded;
@@ -56,16 +56,16 @@ public class LevelManager {
 
     public int getLevelByXP(long xp) {
         if (xp < firstLevelXP)
-            return 0;
+            return 1;
 
         int level = 1;
+        long totalXpNeeded = 0;
         long xpNeeded = firstLevelXP;
-        long totalXpNeeded = firstLevelXP;
 
-        while (totalXpNeeded <= xp) {
+        while (xp >= totalXpNeeded + xpNeeded) {
+            totalXpNeeded += xpNeeded;
             level++;
             xpNeeded = (long) (xpNeeded * multiplier);
-            totalXpNeeded += xpNeeded;
         }
 
         return level;

@@ -67,7 +67,7 @@ public class PlayerManager {
         UUID playerUUID = player.getUniqueId();
         Optional<PlayerData> data = DatabaseManager.getInstance().loadPlayer(playerUUID);
         if (data.isEmpty()) {
-            return this.initPlayerData(player,0,0);
+            return this.initPlayerData(player,0, LevelManager.getInstance().getLevelByXP(0));
         }
         Logs.sendLog(data.get().name(), "info richieste");
         return data.get();
