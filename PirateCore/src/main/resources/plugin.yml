@@ -3,7 +3,7 @@ version: 1.0.0
 name: PirateCore
 author: lucatruglia
 api-version: 1.21
-softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI, Jobs]
 depend: [Vault]
 
 

@@ -86,7 +86,7 @@ public class PirateCoreExpansion extends PlaceholderExpansion {
         // Ottieni i dati del player di destinazione
         PlayerData data = resolvePlayerData(targetPlayerName, viewer);
         if (data == null) {
-            return "N/A";
+            return "0";
         }
 
         // Calcola statistiche extra

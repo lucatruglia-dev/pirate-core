@@ -305,18 +305,54 @@ public class BossBarManager {
         if (player == null) return;
         
         PlayerData data = PlayerManager.getInstance().getInfo(player);
-        long xpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1);
         
+        // XP accumulate in questo specifico livello (totalXp - XP per raggiungere il livello corrente)
+        long xpInCurrentLevel = data.totalXp() - LevelManager.getInstance().getTotalXpNeededForLevel(data.level());
+        // XP necessarie per passare dal livello corrente al prossimo
+        long xpNeededForNextLevel = LevelManager.getInstance().getXpNeededForLevel(data.level() + 1);
+        
+
         this.showTimedBar(
             player,
-            "" + data.level() + "             " + data.totalXp() + "/"
-                + LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1) + "             "
-                + (data.level() + 1),
-            ((double) data.totalXp() / xpNeededForLevel),
-            BarColor.GREEN,
-            BarStyle.SOLID,
+            colorize(formatBossBarTitle(data.level(), data.totalXp(), xpNeededForNextLevel)),
+            xpNeededForNextLevel > 0 ? ((double) xpInCurrentLevel / xpNeededForNextLevel) : 0.0,
+            BarColor.YELLOW,
+            BarStyle.SEGMENTED_20,
             5
         );
+    }
+
+    private String formatBossBarTitle(int currentLevel, long currentXp, long nextLevelXp) {
+        final int TARGET_LENGTH = 32;
+        final String FALLBACK_SPACES = "   "; // 3 spazi di sicurezza se si sfora
+
+        String leftPart = String.valueOf(currentLevel);
+        String centerPart = currentXp + "/" + nextLevelXp;
+        String rightPart = String.valueOf(currentLevel + 1);
+
+        int textLength = leftPart.length() + centerPart.length() + rightPart.length();
+
+        int spacesLeft = TARGET_LENGTH - textLength;
+
+        String paddingLeft;
+        String paddingRight;
+
+        if (spacesLeft > 2) {
+            int padSize = spacesLeft / 2;
+            
+            paddingLeft = " ".repeat(padSize);
+            paddingRight = " ".repeat(spacesLeft - padSize);
+        } else {
+            paddingLeft = FALLBACK_SPACES;
+            paddingRight = FALLBACK_SPACES;
+        }
+
+        leftPart = "&r&e" + leftPart + "&r";
+        rightPart = "&0&e" + rightPart + "&r";
+        centerPart = "&r" + centerPart + "&r";
+
+        // 4. Componiamo il titolo finale
+        return leftPart + paddingLeft + centerPart + paddingRight + rightPart;
     }
     
     /**

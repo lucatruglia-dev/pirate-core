@@ -10,6 +10,9 @@ import lucatruglia.piratecore.models.ListMessage;
 import lucatruglia.piratecore.models.ListMessage.Row;
 
 public class Logs {
+
+
+    
     public static void sendLog(String object, String message) {
         PirateCore.get().getLogger().info("[" + object + "] " + message);
     }
@@ -22,13 +25,14 @@ public class Logs {
     public static void sendListMessageToPlayer(Player player, ListMessage listMessage) {
         List<String> fullMessage = new ArrayList<>();
 
-        fullMessage.add(Utils.colorize("&6&l[PC] "+listMessage.title));
+        fullMessage.add(Utils.colorize(""));
+        fullMessage.add(Utils.colorize("&6&l"+listMessage.title));
 
         for (Row row : listMessage.rows) {
             fullMessage.add(Utils.colorize("&6"+row.key+" ► &e"+row.value));
         }
 
-
+        fullMessage.add(Utils.colorize(""));
         player.sendMessage(fullMessage.toArray(new String[0]));
     }
 }

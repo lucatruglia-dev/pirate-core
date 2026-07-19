@@ -22,18 +22,20 @@ public class PlayerManager {
         instance = this;
     }
 
-    public void addXP(Player player, int amount){
+    public void addXP(Player player, int amount, boolean sendMsg){
         this.setXP_p(player, amount, true);
         
-        Logs.sendSuccessMessageToPlayer(player, "XP", "Congratulazioni! Hai guadagnato "+amount+ "XP");
         BossBarManager.getInstance().showPlayerLevelBar(player);
+        if(sendMsg)
+            Logs.sendSuccessMessageToPlayer(player, "XP", "Congratulazioni! Hai guadagnato "+amount+ "XP");
     }
     
-    public void setXP(Player player, int amount){
+    public void setXP(Player player, int amount, boolean sendMsg){
         this.setXP_p(player, amount, false);
         
-        Logs.sendSuccessMessageToPlayer(player, "XP", "XP impostato a "+amount);
         BossBarManager.getInstance().showPlayerLevelBar(player);
+        if(sendMsg)
+            Logs.sendSuccessMessageToPlayer(player, "XP", "XP impostato a "+amount);
     } 
  
     private PlayerData setXP_p(Player player, int amount, boolean add){
