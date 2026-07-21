@@ -82,4 +82,10 @@ public class RewardManager {
         return false;
     }
 
+    public int getBarrelDestroyReward(Player player){
+        String basePath = "conditions.BARREL_DESTROYED.reward";
+        int reward = (int) data.getInt(basePath) * (int) Math.round(getRewardMultiplier(player));
+        return reward;
+    }
+
 }

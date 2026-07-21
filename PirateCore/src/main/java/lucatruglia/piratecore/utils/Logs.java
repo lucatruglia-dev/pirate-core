@@ -22,6 +22,11 @@ public class Logs {
                 Utils.colorize("&a&l[&r&a" + object + "&a&l] &a" + text));
     }
 
+    public static void sendWarningMessageToPlayer(Player player, String object, String text) {
+        player.sendMessage(
+                Utils.colorize("&c&l[&r&a" + object + "&c&l] &c" + text));
+    }
+
     public static void sendListMessageToPlayer(Player player, ListMessage listMessage) {
         List<String> fullMessage = new ArrayList<>();
 

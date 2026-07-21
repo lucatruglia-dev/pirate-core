@@ -3,8 +3,11 @@ package lucatruglia.piratecore.managers;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
+import lucatruglia.piratecore.events.LevelUpEvent;
 import lucatruglia.piratecore.models.PlayerData;
 import lucatruglia.piratecore.utils.Logs;
 
@@ -22,12 +25,22 @@ public class PlayerManager {
         instance = this;
     }
 
+    public void addMoney(Player player, double amount, boolean sendMsg){
+        if(EconomyManager.getEconomy() == null){
+            Logs.sendLog("ECONOMY", "SI È VERIFICATO UN ERRORE");
+            return;
+        }
+        EconomyManager.getEconomy().depositPlayer(player, amount);
+        if(sendMsg)
+            Logs.sendSuccessMessageToPlayer(player, "Balance", "Hai guadagnato "+amount+ "dobloni");
+    }
+
     public void addXP(Player player, int amount, boolean sendMsg){
         this.setXP_p(player, amount, true);
         
         BossBarManager.getInstance().showPlayerLevelBar(player);
         if(sendMsg)
-            Logs.sendSuccessMessageToPlayer(player, "XP", "Congratulazioni! Hai guadagnato "+amount+ "XP");
+            Logs.sendSuccessMessageToPlayer(player, "XP", "Hai guadagnato "+amount+ "XP");
     }
     
     public void setXP(Player player, int amount, boolean sendMsg){
@@ -35,7 +48,7 @@ public class PlayerManager {
         
         BossBarManager.getInstance().showPlayerLevelBar(player);
         if(sendMsg)
-            Logs.sendSuccessMessageToPlayer(player, "XP", "XP impostato a "+amount);
+            Logs.sendSuccessMessageToPlayer(player, "XP", "XP impostati a "+amount);
     } 
  
     private PlayerData setXP_p(Player player, int amount, boolean add){
@@ -55,6 +68,11 @@ public class PlayerManager {
         }
         
         int newLevel = LevelManager.getInstance().getLevelByXP(newXP);
+
+        if(newLevel > data.get().level()){
+            LevelUpEvent levelUpEvent = new LevelUpEvent(player, newLevel);
+            Bukkit.getPluginManager().callEvent(levelUpEvent);
+        }
         
         PlayerData newPlayerData = new PlayerData(playerUUID, data.get().name(), newXP, newLevel);
 
@@ -92,7 +110,9 @@ public class PlayerManager {
     }
 
 
-
+    public void dropItem(Player player, ItemStack item){
+        player.getWorld().dropItemNaturally(player.getLocation(), item);
+    }
     
     
 }

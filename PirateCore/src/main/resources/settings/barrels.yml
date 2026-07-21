@@ -1,0 +1,9 @@
+barrels:
+  "barile_di_prova":
+    name: "Barile di Prova"
+    life: 5
+    xp_reward: 10
+    money_reward: 1
+    drops: #itemedit items ID
+      - "prova1"
+      - "prova2"

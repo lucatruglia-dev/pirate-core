@@ -1,0 +1,38 @@
+package lucatruglia.piratecore.listeners;
+
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.vehicle.VehicleDestroyEvent;
+import org.bukkit.persistence.PersistentDataType;
+
+
+import lucatruglia.piratecore.PirateCore;
+import lucatruglia.piratecore.managers.PlayerManager;
+import lucatruglia.piratecore.managers.RewardManager;
+import lucatruglia.piratecore.utils.Logs;
+
+public class BarrelDestroyListener implements Listener{
+    @EventHandler
+    public void onBoatDestroy(VehicleDestroyEvent event){
+        if(!(event.getVehicle() instanceof Boat) || !(event.getAttacker() instanceof Player)){
+            return;
+        }
+
+        Boat boat = (Boat) event.getVehicle();
+        Player player = (Player) event.getAttacker();
+
+
+        if (!boat.getPersistentDataContainer().has(PirateCore.BARREL_CUSTOM_KEY, PersistentDataType.BOOLEAN)){
+            return;
+        }
+
+
+        event.setCancelled(true);
+        boat.remove();
+
+        Logs.sendSuccessMessageToPlayer(player, "Barrel", "Barile distrutto");
+        PlayerManager.getInstance().addXP(player, RewardManager.getInstance().getBarrelDestroyReward(player), true);
+    }
+}

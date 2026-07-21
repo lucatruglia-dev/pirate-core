@@ -4,7 +4,7 @@ name: PirateCore
 author: lucatruglia
 api-version: 1.21
 softdepend: [PlaceholderAPI, Jobs]
-depend: [Vault]
+depend: [Vault, ItemEdit]
 
 
 commands:
@@ -14,3 +14,6 @@ commands:
   kbar:
     description: "level command"
     usage: "/kbar"
+  kbarrel:
+    description: "level command"
+    usage: "/kbarrel"
