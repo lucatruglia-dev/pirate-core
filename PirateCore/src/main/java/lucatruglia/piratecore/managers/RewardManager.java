@@ -70,7 +70,7 @@ public class RewardManager {
         int amount = data.getInt(basePath + ".amount");
 
         double reward_multiplier = getRewardMultiplier(player);
-        int reward = (int) (Math.round(data.getInt(basePath + ".reward") * reward_multiplier));
+        double reward = data.getInt(basePath + ".reward") * reward_multiplier;
 
         if (currentValue >= amount && currentValue % amount == 0) {
             PlayerManager.getInstance().addXP(player, reward, true);
@@ -82,9 +82,9 @@ public class RewardManager {
         return false;
     }
 
-    public int getBarrelDestroyReward(Player player){
+    public double getBarrelDestroyReward(Player player){
         String basePath = "conditions.BARREL_DESTROYED.reward";
-        int reward = (int) data.getInt(basePath) * (int) Math.round(getRewardMultiplier(player));
+        double reward = data.getInt(basePath) * getRewardMultiplier(player);
         return reward;
     }
 

@@ -88,7 +88,7 @@ public class PlayerListener implements Listener {
                 //         + " in " + job.getName() + "!");
 
                 Logs.sendSuccessMessageToPlayer(jPlayer.getPlayer(), job.getName(), "Hai raggiunto il livello &e" + newLevel);
-                PlayerManager.getInstance().addXP(jPlayer.getPlayer(), 100, true);
+                PlayerManager.getInstance().addXP(jPlayer.getPlayer(), 100.0, true);
             }
         }
     }

@@ -8,12 +8,12 @@ import java.util.UUID;
  *
  * @param uuid     UUID del player
  * @param name     Nome attuale del player
- * @param totalXp  XP totali accumulate
+ * @param totalXp  XP totali accumulate (supporta decimali)
  * @param level    Livello attuale
  */
 public record PlayerData(
     UUID uuid,
     String name,
-    long totalXp,
+    double totalXp,
     int level
 ) {}

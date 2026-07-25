@@ -48,7 +48,7 @@ public class BarrelCommand implements CommandExecutor {
                 Player p = (Player) sender;
                 Location loc = p.getLocation();
                 int maxlife = Integer.parseInt(args[1]);
-                int xpReward = Integer.parseInt(args[2]);
+                double xpReward = Double.parseDouble(args[2]);
                 int moneyReward = Integer.parseInt(args[3]);
 
                 boolean res = BarrelManager.getInstance().spawnBarrel(loc, maxlife, xpReward, moneyReward, "default");

@@ -93,7 +93,7 @@ public class DatabaseManager {
                 CREATE TABLE IF NOT EXISTS player_data (
                     uuid       TEXT PRIMARY KEY,
                     name       TEXT NOT NULL,
-                    total_xp   INTEGER NOT NULL DEFAULT 0,
+                    total_xp   REAL NOT NULL DEFAULT 0.0,
                     level      INTEGER NOT NULL DEFAULT 1
                 )
                 """;
@@ -126,7 +126,7 @@ public class DatabaseManager {
                     return Optional.of(new PlayerData(
                             UUID.fromString(rs.getString("uuid")),
                             rs.getString("name"),
-                            rs.getLong("total_xp"),
+                            rs.getDouble("total_xp"),
                             rs.getInt("level")));
                 }
             }
@@ -157,7 +157,7 @@ public class DatabaseManager {
                     return Optional.of(new PlayerData(
                             UUID.fromString(rs.getString("uuid")),
                             rs.getString("name"),
-                            rs.getLong("total_xp"),
+                            rs.getDouble("total_xp"),
                             rs.getInt("level")));
                 }
             }
@@ -188,7 +188,7 @@ public class DatabaseManager {
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, data.uuid().toString());
             ps.setString(2, data.name());
-            ps.setLong(3, data.totalXp());
+            ps.setDouble(3, data.totalXp());
             ps.setInt(4, data.level());
             ps.executeUpdate();
         } catch (SQLException e) {

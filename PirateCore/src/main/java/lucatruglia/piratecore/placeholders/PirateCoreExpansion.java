@@ -91,10 +91,10 @@ public class PirateCoreExpansion extends PlaceholderExpansion {
 
         // Calcola statistiche extra
         int level = data.level();
-        long totalXp = data.totalXp();
-        long xpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1);
+        double totalXp = data.totalXp();
+        double totalXpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1);
 
-        double progress = (double) ((double) data.totalXp() / (double)xpNeededForLevel);
+        double progress = totalXpNeededForLevel > 0 ? (totalXp / totalXpNeededForLevel) : 0.0;
 
         
 

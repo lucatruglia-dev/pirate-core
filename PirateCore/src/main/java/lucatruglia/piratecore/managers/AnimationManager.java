@@ -59,7 +59,7 @@ public class AnimationManager {
                     b.setInterpolationDelay(0); // Forza l'inizio immediato sul client
                 }
             }
-        }.runTaskTimer(plugin, 0L, 30L); // Gira solo una volta ogni 1.5 secondi (30 tick)
+        }.runTaskTimer(plugin, 0L, 30L);
     }
 
 }

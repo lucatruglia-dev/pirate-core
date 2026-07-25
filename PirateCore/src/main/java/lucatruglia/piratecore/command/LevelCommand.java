@@ -16,6 +16,7 @@ import lucatruglia.piratecore.models.ListMessage;
 import lucatruglia.piratecore.models.PlayerData;
 import lucatruglia.piratecore.models.ListMessage.Row;
 import lucatruglia.piratecore.utils.Logs;
+import lucatruglia.piratecore.utils.Utils;
 
 public class LevelCommand implements CommandExecutor {
 
@@ -60,14 +61,14 @@ public class LevelCommand implements CommandExecutor {
     private void getInfoSubCommand(Player player) {
         PlayerData data = PlayerManager.getInstance().getInfo(player);
 
-        long xpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1);
+        double xpNeededForLevel = LevelManager.getInstance().getTotalXpNeededForLevel(data.level() + 1);
 
         
 
         Logs.sendListMessageToPlayer(player, 
             new ListMessage("Informazioni", new ArrayList<Row>(List.of(
                 new Row("Nome", data.name()),
-                new Row("XP", ""+data.totalXp() + "/" + xpNeededForLevel),
+                new Row("XP", Utils.formatDouble(data.totalXp()) + "/" + Utils.formatDouble(xpNeededForLevel)),
                 new Row("Level", ""+data.level())
             )))
         );
@@ -78,14 +79,14 @@ public class LevelCommand implements CommandExecutor {
 
     private void setXPSubCommand(Player player, String targetPlayer, String amount) {
         Player targetP = PirateCore.get().getServer().getPlayer(targetPlayer);
-        PlayerManager.getInstance().setXP(targetP, Integer.parseInt(amount), true);
+        PlayerManager.getInstance().setXP(targetP, Double.parseDouble(amount), true);
 
         player.sendMessage("(" + targetPlayer + ") -> settato xp a " + amount);
     }
 
     private void addXPSubCommand(Player player, String targetPlayer, String amount) {
         Player targetP = PirateCore.get().getServer().getPlayer(targetPlayer);
-        PlayerManager.getInstance().addXP(targetP, Integer.parseInt(amount), true);
+        PlayerManager.getInstance().addXP(targetP, Double.parseDouble(amount), true);
 
         player.sendMessage("(" + targetPlayer + ") -> aggiunto xp: " + amount);
     }

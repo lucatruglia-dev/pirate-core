@@ -6,6 +6,17 @@ import net.md_5.bungee.api.ChatColor;
 
 public class Utils {
     
+    /**
+     * Formatta un double per display: mostra come intero se non ha decimali significativi,
+     * altrimenti con 2 decimali.
+     */
+    public static String formatDouble(double value) {
+        if (value == Math.floor(value) && !Double.isInfinite(value)) {
+            return String.valueOf((long) value);
+        }
+        return String.format("%.2f", value);
+    }
+    
     public static String colorize(String msg) {
         Matcher match = Pattern.compile("#[a-fA-F0-9]{6}").matcher(msg);
         while (match.find()) {

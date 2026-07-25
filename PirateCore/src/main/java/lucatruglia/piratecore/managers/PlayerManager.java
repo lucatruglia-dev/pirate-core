@@ -35,7 +35,7 @@ public class PlayerManager {
             Logs.sendSuccessMessageToPlayer(player, "Balance", "Hai guadagnato "+amount+ "dobloni");
     }
 
-    public void addXP(Player player, int amount, boolean sendMsg){
+    public void addXP(Player player, double amount, boolean sendMsg){
         this.setXP_p(player, amount, true);
         
         BossBarManager.getInstance().showPlayerLevelBar(player);
@@ -43,7 +43,7 @@ public class PlayerManager {
             Logs.sendSuccessMessageToPlayer(player, "XP", "Hai guadagnato "+amount+ "XP");
     }
     
-    public void setXP(Player player, int amount, boolean sendMsg){
+    public void setXP(Player player, double amount, boolean sendMsg){
         this.setXP_p(player, amount, false);
         
         BossBarManager.getInstance().showPlayerLevelBar(player);
@@ -51,9 +51,9 @@ public class PlayerManager {
             Logs.sendSuccessMessageToPlayer(player, "XP", "XP impostati a "+amount);
     } 
  
-    private PlayerData setXP_p(Player player, int amount, boolean add){
+    private PlayerData setXP_p(Player player, double amount, boolean add){
         UUID playerUUID = player.getUniqueId();
-        long newXP = (long) amount;
+        double newXP = amount;
         Optional<PlayerData> data = DatabaseManager.getInstance().loadPlayer(playerUUID);
         
         if (data.isEmpty()) {
@@ -64,7 +64,7 @@ public class PlayerManager {
         }
 
         if (add){
-            newXP = data.get().totalXp()+(long)amount;
+            newXP = data.get().totalXp()+amount;
         }
         
         int newLevel = LevelManager.getInstance().getLevelByXP(newXP);
@@ -93,7 +93,7 @@ public class PlayerManager {
         return data.get();
     }
 
-    public PlayerData initPlayerData(Player player, long xp, int level){
+    public PlayerData initPlayerData(Player player, double xp, int level){
         UUID playerUUID = player.getUniqueId();
         PlayerData pData = new PlayerData(playerUUID, player.getName(), xp, level);
         DatabaseManager.getInstance().savePlayer(pData);

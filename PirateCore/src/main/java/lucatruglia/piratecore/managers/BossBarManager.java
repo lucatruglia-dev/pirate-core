@@ -9,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import lucatruglia.piratecore.models.PlayerData;
+import lucatruglia.piratecore.utils.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -306,28 +307,32 @@ public class BossBarManager {
         
         PlayerData data = PlayerManager.getInstance().getInfo(player);
         
-        // XP accumulate in questo specifico livello (totalXp - XP per raggiungere il livello corrente)
-        long xpInCurrentLevel = data.totalXp() - LevelManager.getInstance().getTotalXpNeededForLevel(data.level());
-        // XP necessarie per passare dal livello corrente al prossimo
-        long xpNeededForNextLevel = LevelManager.getInstance().getXpNeededForLevel(data.level() + 1);
+        double totalXp = data.totalXp();
+        int currentLevel = data.level();
         
+        // Valori cumulativi per il TITOLO
+        double totalXpNeededForNextLevel = LevelManager.getInstance().getTotalXpNeededForLevel(currentLevel + 1);
+        
+        // Valori entro il livello corrente per la PROGRESS
+        double xpInCurrentLevel = totalXp - LevelManager.getInstance().getTotalXpNeededForLevel(currentLevel);
+        double xpNeededForNextLevel = LevelManager.getInstance().getXpNeededForLevel(currentLevel + 1);
 
         this.showTimedBar(
             player,
-            colorize(formatBossBarTitle(data.level(), data.totalXp(), xpNeededForNextLevel)),
-            xpNeededForNextLevel > 0 ? ((double) xpInCurrentLevel / xpNeededForNextLevel) : 0.0,
+            colorize(formatBossBarTitle(currentLevel, totalXp, totalXpNeededForNextLevel)),
+            xpNeededForNextLevel > 0 ? (xpInCurrentLevel / xpNeededForNextLevel) : 0.0,
             BarColor.YELLOW,
             BarStyle.SEGMENTED_20,
             5
         );
     }
 
-    private String formatBossBarTitle(int currentLevel, long currentXp, long nextLevelXp) {
+    private String formatBossBarTitle(int currentLevel, double currentXp, double nextLevelXp) {
         final int TARGET_LENGTH = 32;
         final String FALLBACK_SPACES = "   "; // 3 spazi di sicurezza se si sfora
 
         String leftPart = String.valueOf(currentLevel);
-        String centerPart = currentXp + "/" + nextLevelXp;
+        String centerPart = Utils.formatDouble(currentXp) + "/" + Utils.formatDouble(nextLevelXp);
         String rightPart = String.valueOf(currentLevel + 1);
 
         int textLength = leftPart.length() + centerPart.length() + rightPart.length();
@@ -354,6 +359,8 @@ public class BossBarManager {
         // 4. Componiamo il titolo finale
         return leftPart + paddingLeft + centerPart + paddingRight + rightPart;
     }
+
+
     
     /**
      * Pulisce le BossBar di un giocatore quando esce dal server

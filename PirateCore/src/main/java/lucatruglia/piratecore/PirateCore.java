@@ -3,6 +3,8 @@ package lucatruglia.piratecore;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import lucatruglia.piratecore.managers.BossBarManager;
+
 public class PirateCore extends JavaPlugin {
 
     private static PirateCore instance;
@@ -14,7 +16,6 @@ public class PirateCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
-
         BARREL_CUSTOM_KEY = new NamespacedKey(this, "barrel_boat");
 
         instance = this;
@@ -28,7 +29,12 @@ public class PirateCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        getLogger().info("PirateCore has been disabled!");
+        getLogger().info("PirateCore has been disabled! (was enabled: " + isEnabled() + ")");
+        try {
+            BossBarManager.getInstance().clearAll();
+        } catch (Exception e) {
+            getLogger().warning("Error during BossBar cleanup: " + e.toString());
+        }
     }
 
     
