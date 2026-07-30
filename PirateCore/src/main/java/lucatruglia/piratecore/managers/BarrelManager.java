@@ -77,6 +77,7 @@ public class BarrelManager {
             result.append("&7&l❤");
         }
 
+
         result.append("\n&a+" + Utils.formatDouble(xp) + "XP");
         result.append("\n&a+" + money + " Money");
 
@@ -235,7 +236,7 @@ public class BarrelManager {
         int colpiRimasti = as.getPersistentDataContainer().get(BarrelManager.actualLifeKey, PersistentDataType.INTEGER);
         double xpReward = as.getPersistentDataContainer().get(BarrelManager.xpRewardKey, PersistentDataType.DOUBLE);
         int moneyReward = as.getPersistentDataContainer().get(BarrelManager.moneyRewardKey, PersistentDataType.INTEGER);
-        int maxLife = as.getPersistentDataContainer().get(BarrelManager.maxLifeKey, PersistentDataType.INTEGER);
+        //int maxLife = as.getPersistentDataContainer().get(BarrelManager.maxLifeKey, PersistentDataType.INTEGER);
         String id = as.getPersistentDataContainer().get(BarrelManager.idKey, PersistentDataType.STRING);
 
         // Riduciamo i colpi di 1

@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import lucatruglia.piratecore.PirateCore;
 import lucatruglia.piratecore.models.ListMessage;
+import lucatruglia.piratecore.models.ListMessage.Button;
 import lucatruglia.piratecore.models.ListMessage.Row;
 
 public class Logs {
@@ -33,11 +34,20 @@ public class Logs {
         fullMessage.add(Utils.colorize(""));
         fullMessage.add(Utils.colorize("&6&l"+listMessage.title));
 
-        for (Row row : listMessage.rows) {
-            fullMessage.add(Utils.colorize("&6"+row.key+" ► &e"+row.value));
+        if (!listMessage.rows.isEmpty()){
+            for (Row row : listMessage.rows) {
+                fullMessage.add(Utils.colorize("&6"+row.key+" ► &e"+row.value));
+            }
         }
 
-        fullMessage.add(Utils.colorize(""));
+        if (!listMessage.buttons.isEmpty()){
+            fullMessage.add("");
+            for (Button button : listMessage.buttons) {
+                fullMessage.add(Utils.colorize("&9&l[&r&b"+button.text+"&9&l]"));
+            }
+        }
+
+        fullMessage.add("");
         player.sendMessage(fullMessage.toArray(new String[0]));
     }
 }

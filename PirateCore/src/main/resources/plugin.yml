@@ -17,3 +17,6 @@ commands:
   kbarrel:
     description: "level command"
     usage: "/kbarrel"
+  kmap:
+    description: "level command"
+    usage: "/kmap"

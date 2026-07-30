@@ -1,4 +1,4 @@
-package lucatruglia.piratecore.placeholders;
+package lucatruglia.piratecore.extensions;
 
 import lucatruglia.piratecore.managers.DatabaseManager;
 import lucatruglia.piratecore.managers.LevelManager;
