@@ -1,6 +1,7 @@
 package lucatruglia.piratecore;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import lucatruglia.piratecore.command.*;
 import lucatruglia.piratecore.extensions.*;
@@ -45,6 +46,15 @@ public class Loader {
         registerCommand(plugin, "kbar", new BossBarCommand());
         registerCommand(plugin, "kbarrel", new BarrelCommand());
         registerCommand(plugin, "kmap", new MapCommand());
+    }
+
+    public static void loadTasks(JavaPlugin plugin){
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                TreasureMapManager.getInstance().checkAllActivity();
+            }
+        }.runTaskTimer(plugin, 0L, 150L);
     }
 
     public static void loadExtensions(JavaPlugin plugin) {

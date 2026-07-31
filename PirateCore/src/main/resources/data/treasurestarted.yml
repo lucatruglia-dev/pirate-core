@@ -1,0 +1,19 @@
+
+
+# CHEST POSITION, RARITÀ, PLAYER PROPRIETARIO
+# DATE START_MISSION (quando clicca con il destro la mappa), DATE END_MISSION_PREV (+1h quando despawna la chest)
+# IS_SEARCHING (il player è lontano), HAS_FOUND (il player è nel raggio)
+
+# "UUID_PLAYER1":
+#   chest_position: [0,0,0]
+
+#   mission_rarity: "EPIC"
+#   mission_UUID: "- - - - - -"
+
+#   start_mission_date: "-/-/- 00:00"
+#   despawn_chest_date: "-/-/- 00:00"
+
+#   is_player_searching: true
+#   has_player_found: false
+
+#   end_mission_date: null

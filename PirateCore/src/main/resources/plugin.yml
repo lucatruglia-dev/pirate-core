@@ -4,7 +4,7 @@ name: PirateCore
 author: lucatruglia
 api-version: 1.21
 softdepend: [PlaceholderAPI, Jobs]
-depend: [Vault, ItemEdit]
+depend: [Vault, ItemEdit, WorldGuard]
 
 
 commands:

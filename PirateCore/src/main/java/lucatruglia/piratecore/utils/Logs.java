@@ -40,7 +40,7 @@ public class Logs {
             }
         }
 
-        if (!listMessage.buttons.isEmpty()){
+        if (listMessage.buttons!=null){
             fullMessage.add("");
             for (Button button : listMessage.buttons) {
                 fullMessage.add(Utils.colorize("&9&l[&r&b"+button.text+"&9&l]"));

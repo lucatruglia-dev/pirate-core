@@ -26,6 +26,14 @@ public class Utils {
         }
         return ChatColor.translateAlternateColorCodes('&', msg);
     }
+
+    public static String coordToString(int x, int y, int z){
+        return "("+x +  ", " +y +  ", " + z + ")";  
+    }
+
+    public static String coordToString(int x, int z){
+        return "("+x +  ", " + z + ")";  
+    }
     
     // Add more utility methods here
 }

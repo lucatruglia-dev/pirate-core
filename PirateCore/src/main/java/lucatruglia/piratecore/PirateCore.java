@@ -23,6 +23,7 @@ public class PirateCore extends JavaPlugin {
         Loader.loadManagers(this);
         Loader.loadListeners(this);
         Loader.loadCommands(this);
+        Loader.loadTasks(this);
 
         getLogger().info("PirateCore has been enabled!");
     }

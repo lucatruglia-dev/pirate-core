@@ -18,11 +18,17 @@ public class MapClickListener implements Listener {
         if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
             Player player = event.getPlayer();
             ItemStack item = event.getItem();
+
+            if(item==null){
+                return;
+            }
+
             ItemMeta item_meta = item.getItemMeta();
-            boolean isTreasureMap = item_meta
-                .getPersistentDataContainer()
-                .get(TreasureMapManager.treasureMapKey, PersistentDataType.BOOLEAN);
-            if(isTreasureMap){
+            boolean isTreasureMap = Boolean.TRUE.equals(
+                    item_meta.getPersistentDataContainer()
+                            .get(TreasureMapManager.treasureMapKey, PersistentDataType.BOOLEAN));
+
+            if (isTreasureMap) {
                 TreasureMapManager.getInstance().startTreasure(player, item);
                 event.setCancelled(true);
             }
