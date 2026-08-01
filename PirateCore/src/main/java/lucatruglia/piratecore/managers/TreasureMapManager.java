@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.math.BlockVector2;
@@ -25,7 +26,6 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.TileState;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -56,7 +56,10 @@ public class TreasureMapManager {
     public static NamespacedKey playerUUIDMapKey;
 
     public final Integer[] middleMap_x_z = { 1301, 907 };
+    public final int despawnChestTimeInMinutes = 60;
+    public final int endMissionTimeInSeconds = 5;
     public final UUID worldUUID = UUID.fromString("3f5f0ed0-5454-467a-800e-505e6d88aabf");
+
     private String filePath = "data/treasurestarted.yml";
 
     private static RegionManager regions;
@@ -84,25 +87,6 @@ public class TreasureMapManager {
         instance = this;
     }
 
-    // public void test(){
-    // String filePath = "data/treasurestarted.yml";
-    // //ConfigManager.getInstance().set(filePath, "UUID_PLAYER.chest_position", new
-    // int[]{1,2,3});
-    // ConfigManager.getInstance().set(filePath, "UUID_PLAYER", null);
-    // config = ConfigManager.getInstance().getConfig("data/treasurestarted.yml");
-    // }
-
-    /*
-     * 
-     * Instant expiration = Instant.parse("2026-08-05T12:00:00Z");
-     * Instant now = Instant.now();
-     * 
-     * if (expiration.isBefore(now)) {
-     * System.out.println("Scaduta");
-     * }
-     * 
-     */
-
     private void initTreasureOnDb(
             UUID player_uuid,
             int[] chest_position,
@@ -115,10 +99,9 @@ public class TreasureMapManager {
         ConfigManager.getInstance().set(filePath, index + "mission_UUID", map_uuid.toString());
         ConfigManager.getInstance().set(filePath, index + "start_mission_date", Instant.now().toString());
         ConfigManager.getInstance().set(filePath, index + "despawn_chest_date",
-                Instant.now().plus(Duration.ofMinutes(1)).toString());
+                Instant.now().plus(Duration.ofMinutes(despawnChestTimeInMinutes)).toString());
 
         ConfigManager.getInstance().set(filePath, index + "is_player_searching", true);
-        ConfigManager.getInstance().set(filePath, index + "has_player_found", false);
 
         config = ConfigManager.getInstance().getConfig("data/treasurestarted.yml");
     }
@@ -128,7 +111,11 @@ public class TreasureMapManager {
 
         Block chestBlock = locationToPlaceBlock.getBlock();
         TileState chestState = (TileState) chestBlock.getState();
+
         chestState.getPersistentDataContainer().set(uuidMapKey, PersistentDataType.STRING, map_uuid.toString());
+        chestState.getPersistentDataContainer().set(playerUUIDMapKey, PersistentDataType.STRING,
+                player.getUniqueId().toString());
+        chestState.update();
     }
 
     private void initializeRegions() {
@@ -137,15 +124,96 @@ public class TreasureMapManager {
         regions = container.get(BukkitAdapter.adapt(world));
     }
 
-    private void removePlayerOnDB(UUID playerUUID){
+    private void removeMapOnInventory(Player player, UUID mapUUID) {
+        ItemStack[] items = player.getInventory().getContents();
+        for (ItemStack item : items) {
+            if (item == null) {
+                continue;
+            }
+            ItemMeta itemMeta = item.getItemMeta();
+            String res = itemMeta.getPersistentDataContainer().get(uuidMapKey, PersistentDataType.STRING);
+            if (res == null) {
+                continue;
+            }
+
+            if (mapUUID.toString().equals(res)) {
+                player.getInventory().remove(item);
+                Logs.sendWarningMessageToPlayer(player, "kMap", "Mappa rimossa dall'inventario.");
+            }
+        }
+    }
+
+    private void removePlayerOnDB(UUID playerUUID) {
         ConfigManager.getInstance().set(filePath, playerUUID.toString(), null);
     }
 
-    private void removeChest(UUID playerUUID){
-        List<Integer> chestPosition = (List<Integer>) ConfigManager.getInstance().get(filePath, playerUUID.toString() + ".chest_position");
+    public boolean hasPlayerFoundTreasure(Player player) {
+        Boolean res = ConfigManager.getInstance().getBoolean(filePath,
+                player.getUniqueId().toString() + ".is_player_searching");
+
+        return !res;
+    }
+
+    public void playerFoundTreasure(Player player) {
+        ConfigManager.getInstance().set(filePath, player.getUniqueId().toString() + ".is_player_searching", false);
+
+        Rarity rarity = Rarity.valueOf((String) ConfigManager.getInstance().get(filePath,
+                player.getUniqueId().toString() + ".mission_rarity"));
+        UUID missionUUID = UUID.fromString(
+                ConfigManager.getInstance().getString(filePath, player.getUniqueId().toString() + ".mission_UUID"));
+
+        // PREMIARE PLAYER
+        PlayerManager.getInstance().addXP(player, 100, false);
+
+        Logs.sendListMessageToPlayer(
+                player,
+                new ListMessage(
+                        "Complimenti! hai trovato il tesoro (" + rarity.name() + ")",
+                        List.of(
+                                new ListMessage.Row("Attenzione",
+                                        "Hai " + Math.round(endMissionTimeInSeconds / 60)
+                                                + " minuti per prendere il bottino!"),
+                                new ListMessage.Row("XP", "+100 XP"),
+                                new ListMessage.Row("Dobloni", "+100 $")),
+                        List.of(
+                                new ListMessage.Button("Contrassegna come completata", ""))));
+
+        Logs.sendWarningActionBarToPlayer(player, "Attenzione",
+                "Hai " + Math.round(endMissionTimeInSeconds / 60) + " minuti per prendere il bottino!");
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                TreasureMapManager.getInstance().removeMapOnInventory(player, missionUUID);
+                TreasureMapManager.getInstance().removeChest(player.getUniqueId());
+                TreasureMapManager.getInstance().removePlayerOnDB(player.getUniqueId());
+            }
+        }.runTaskLater(PirateCore.get(), Utils.secondsToTicks(endMissionTimeInSeconds));
+    }
+
+    private void removeChest(UUID playerUUID) {
+        Object rawPosition = ConfigManager.getInstance().get(filePath, playerUUID.toString() + ".chest_position");
+        List<Integer> chestPosition = new ArrayList<>();
+
+        if (rawPosition instanceof List) {
+            chestPosition = (List<Integer>) rawPosition;
+        } else if (rawPosition instanceof int[]) {
+            for (int val : (int[]) rawPosition) {
+                chestPosition.add(val);
+            }
+        }
+
+        if (chestPosition.isEmpty() || chestPosition.size() < 3)
+            return;
+
         World world = PirateCore.get().getServer().getWorld(worldUUID);
         Location loc = new Location(world, chestPosition.get(0), chestPosition.get(1), chestPosition.get(2));
         loc.getBlock().setType(Material.AIR);
+
+        Player p = PirateCore.get().getServer().getPlayer(playerUUID);
+
+        if (p != null && p.isOnline()) {
+            Logs.sendWarningMessageToPlayer(p, "kMap", "Chest rimossa.");
+        }
     }
     // COMUNE, RARO, EPICO, LEGGENDARIO
 
@@ -229,9 +297,11 @@ public class TreasureMapManager {
 
         for (String playerUuidStr : config.getKeys(false)) {
             String despawnDateStr = config.getString(playerUuidStr + ".despawn_chest_date");
+            UUID mapUUID = UUID.fromString(config.getString(playerUuidStr + ".mission_UUID"));
+            Boolean isPlayerSearching = config.getBoolean(playerUuidStr + ".is_player_searching");
             Player player = PirateCore.get().getServer().getPlayer(UUID.fromString(playerUuidStr));
 
-            if (despawnDateStr == null)
+            if (despawnDateStr == null || isPlayerSearching == false)
                 continue;
 
             // Converte la stringa ISO (es. '2026-07-31T17:49:19.533Z') in un oggetto
@@ -244,35 +314,20 @@ public class TreasureMapManager {
 
             // 1. Controllo se è scaduta
             if (secondsLeft <= 0) {
-                Logs.sendSuccessMessageToPlayer(player, "kMap", "Missione scaduta, la chest è despawnata.");
+                Logs.sendSuccessActionBarToPlayer(player, "kMap", "Missione scaduta, la chest è despawnata.");
+                removeMapOnInventory(player, mapUUID);
                 removeChest(UUID.fromString(playerUuidStr));
                 removePlayerOnDB(UUID.fromString(playerUuidStr));
-                //getLogger().info("La chest del player " + playerUuidStr + " è scaduta (despawnata).");
-                // TODO: Rimuovi la chest dal mondo, aggiorna lo YAML o pulisci i dati
 
-                // 2. Controllo se mancano 10 minuti o meno (600 secondi)
+            } else if (secondsLeft <= 100) {
+                Logs.sendWarningActionBarToPlayer(player, "kMap", "Attenzione, la missione scade tra pochi secondi.");
+                Logs.sendWarningMessageToPlayer(player, "kMap", "Attenzione, la missione scade tra pochi secondi.");
             }
-            else if (secondsLeft <= 60) {
-                Logs.sendSuccessMessageToPlayer(player, "kMap", "Attenzione, la missione scade tra meno di 60 secondi.");
-            }
-            else if (secondsLeft <= 300) {
-                Logs.sendSuccessMessageToPlayer(player, "kMap", "Attenzione, la missione scade tra meno di 5 minuti.");
-            }
-            
-            else if (secondsLeft <= 600) {
-                long minutes = secondsLeft / 60;
-                long seconds = secondsLeft % 60;
-                //getLogger().warning("Mancano solo " + minutes + "m " + seconds + "s al despawn della chest di " + playerUuidStr + "!");
-                Logs.sendSuccessMessageToPlayer(player, "kMap", "Attenzione, la missione scade tra meno di 10 minuti.");
 
-                // TODO: Notifica il player in gioco se è online
-                // Player player = Bukkit.getPlayer(UUID.fromString(playerUuidStr));
-                // if (player != null && player.isOnline()) { player.sendMessage("..."); }
-
-            } else {
-                // Ancora tempo disponibile
-                double minutesLeft = secondsLeft / 60.0;
-                Logs.sendSuccessMessageToPlayer(player, "kMap", "Minuti rimanenti: "+minutesLeft);
+            else {
+                int minutesLeft = (int) Math.round(secondsLeft / 60);
+                Logs.sendWarningActionBarToPlayer(player, "kMap",
+                        "Attenzione, la missione scade tra " + minutesLeft + " minuti.");
             }
         }
         return;
@@ -363,7 +418,7 @@ public class TreasureMapManager {
                         new ArrayList<Row>(List.of(
                                 new ListMessage.Row("Rarità", rarity.name()),
                                 new ListMessage.Row("Coordinate", stringLocation),
-                                new ListMessage.Row("Tempo rimanente", "1h 30m"))),
+                                new ListMessage.Row("Tempo rimanente", "" + despawnChestTimeInMinutes + " minuti"))),
                         new ArrayList<ListMessage.Button>(List.of(
                                 new ListMessage.Button("ANNULLA", "")))));
 

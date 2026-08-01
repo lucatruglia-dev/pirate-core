@@ -7,6 +7,7 @@ import lucatruglia.piratecore.command.*;
 import lucatruglia.piratecore.extensions.*;
 import lucatruglia.piratecore.listeners.*;
 import lucatruglia.piratecore.managers.*;
+import lucatruglia.piratecore.utils.Utils;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -39,6 +40,7 @@ public class Loader {
         plugin.getServer().getPluginManager().registerEvents(new ArmorStandListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new LevelUpListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new MapClickListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new OpenTreasureChestListener(), plugin);
     }
 
     public static void loadCommands(JavaPlugin plugin) {
@@ -54,7 +56,7 @@ public class Loader {
             public void run() {
                 TreasureMapManager.getInstance().checkAllActivity();
             }
-        }.runTaskTimer(plugin, 0L, 150L);
+        }.runTaskTimer(plugin, 20L, Utils.secondsToTicks(60));
     }
 
     public static void loadExtensions(JavaPlugin plugin) {

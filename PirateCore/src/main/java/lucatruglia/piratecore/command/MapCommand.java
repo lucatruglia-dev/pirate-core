@@ -1,8 +1,5 @@
 package lucatruglia.piratecore.command;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -12,7 +9,6 @@ import org.bukkit.entity.Player;
 import lucatruglia.piratecore.managers.TreasureMapManager;
 import lucatruglia.piratecore.managers.TreasureMapManager.Rarity;
 import lucatruglia.piratecore.utils.Logs;
-import lucatruglia.piratecore.utils.Utils;
 
 //kmap give 
 public class MapCommand implements CommandExecutor {

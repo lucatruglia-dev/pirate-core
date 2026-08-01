@@ -34,6 +34,10 @@ public class Utils {
     public static String coordToString(int x, int z){
         return "("+x +  ", " + z + ")";  
     }
+
+    public static long secondsToTicks(int seconds){
+        return ((long)seconds)*20;
+    } 
     
     // Add more utility methods here
 }

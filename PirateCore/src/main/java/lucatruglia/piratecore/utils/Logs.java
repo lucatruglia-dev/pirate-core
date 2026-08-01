@@ -9,6 +9,8 @@ import lucatruglia.piratecore.PirateCore;
 import lucatruglia.piratecore.models.ListMessage;
 import lucatruglia.piratecore.models.ListMessage.Button;
 import lucatruglia.piratecore.models.ListMessage.Row;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class Logs {
 
@@ -18,6 +20,15 @@ public class Logs {
         PirateCore.get().getLogger().info("[" + object + "] " + message);
     }
 
+    public static void sendSuccessActionBarToPlayer(Player player, String object, String text) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(Utils.colorize("&a&l[&r&a" + object + "&a&l] &a" + text)));
+    }
+
+    public static void sendWarningActionBarToPlayer(Player player, String object, String text) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(Utils.colorize("&c&l[&r&4" + object + "&c&l] &a" + text)));
+    }
+
+
     public static void sendSuccessMessageToPlayer(Player player, String object, String text) {
         player.sendMessage(
                 Utils.colorize("&a&l[&r&a" + object + "&a&l] &a" + text));
@@ -25,7 +36,7 @@ public class Logs {
 
     public static void sendWarningMessageToPlayer(Player player, String object, String text) {
         player.sendMessage(
-                Utils.colorize("&c&l[&r&a" + object + "&c&l] &c" + text));
+                Utils.colorize("&c&l[&r&4" + object + "&c&l] &c" + text));
     }
 
     public static void sendListMessageToPlayer(Player player, ListMessage listMessage) {
