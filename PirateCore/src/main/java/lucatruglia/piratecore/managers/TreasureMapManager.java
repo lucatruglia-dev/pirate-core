@@ -26,10 +26,10 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.TileState;
+import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
@@ -49,23 +49,38 @@ public class TreasureMapManager {
     public static NamespacedKey filledMapKey;
 
     private FileConfiguration config;
+    private FileConfiguration settings;
 
     public static NamespacedKey treasureMapKey;
     public static NamespacedKey rarityMapKey;
     public static NamespacedKey uuidMapKey;
     public static NamespacedKey playerUUIDMapKey;
 
-    public final Integer[] middleMap_x_z = { 1301, 907 };
-    public final int despawnChestTimeInMinutes = 60;
-    public final int endMissionTimeInSeconds = 5;
-    public final UUID worldUUID = UUID.fromString("3f5f0ed0-5454-467a-800e-505e6d88aabf");
+    public List<Integer> middleMap_x_z;
+    public int despawnChestTimeInMinutes;
+    public int endMissionTimeInSeconds;
+    public int spawnRadius;
+    public int deltaRadius;
+    public UUID worldUUID;
 
     private String filePath = "data/treasurestarted.yml";
+    private String settingsPath = "settings/treasure.yml";
 
     private static RegionManager regions;
 
     public static enum Rarity {
-        COMMON, RARE, EPIC, LEGENDARY
+        COMMON(0), RARE(1), EPIC(2), LEGENDARY(3);
+
+        private Rarity(int val) {
+            this.val = val;
+        }
+
+        private int val;
+
+        public int getVal() {
+            return this.val;
+        }
+
     }
 
     public static TreasureMapManager getInstance() {
@@ -76,15 +91,39 @@ public class TreasureMapManager {
     }
 
     public void initialize(JavaPlugin plugin) {
-        initializeRegions();
         config = ConfigManager.getInstance().getConfig(this.filePath);
+        settings = ConfigManager.getInstance().getConfig(this.settingsPath);
+
         filledMapKey = new NamespacedKey(plugin, "isFilledMap");
         treasureMapKey = new NamespacedKey(plugin, "isTreasureMap");
         rarityMapKey = new NamespacedKey(plugin, "rarity");
         uuidMapKey = new NamespacedKey(plugin, "uuid");
         playerUUIDMapKey = new NamespacedKey(plugin, "playeruuid");
 
+        initializeSettings();
+        initializeRegions();
+
         instance = this;
+    }
+
+    private void initializeSettings() {
+        /*
+         * public Integer[] middleMap_x_z = { 1301, 907 };
+         * public int despawnChestTimeInMinutes = 60;
+         * public int endMissionTimeInSeconds = 5;
+         * public int spawnRadius = 700;
+         * public int deltaRadius = 400;
+         * public UUID worldUUID =
+         * UUID.fromString("3f5f0ed0-5454-467a-800e-505e6d88aabf");
+         */
+        String index = "settings.";
+        this.worldUUID = UUID.fromString(settings.getString(index + "worldUUID"));
+        this.spawnRadius = settings.getInt(index + "spawn_radius");
+        this.deltaRadius = settings.getInt(index + "delta_radius");
+        this.despawnChestTimeInMinutes = settings.getInt(index + "despawn_chest_in_minutes");
+        this.endMissionTimeInSeconds = settings.getInt(index + "end_mission_time_in_seconds");
+        this.middleMap_x_z = settings.getIntegerList(index + "middle_map_x_z");
+
     }
 
     private void initTreasureOnDb(
@@ -107,19 +146,46 @@ public class TreasureMapManager {
     }
 
     private void generateChestWithLoot(Location locationToPlaceBlock, Rarity rarity, UUID map_uuid, Player player) {
-        locationToPlaceBlock.getBlock().setType(Material.CHEST);
+        Block block = locationToPlaceBlock.getBlock();
+        block.setType(Material.CHEST);
 
-        Block chestBlock = locationToPlaceBlock.getBlock();
-        TileState chestState = (TileState) chestBlock.getState();
+        // 1. Recupera gli item dal LootManager
+        ArrayList<ItemStack> lootList = LootManager.getInstance().getTreasureLoot(rarity);
+
+        // 2. Ottieni lo stato e imposta i dati persistenti
+        if (!(block.getState() instanceof Chest chestState))
+            return;
 
         chestState.getPersistentDataContainer().set(uuidMapKey, PersistentDataType.STRING, map_uuid.toString());
         chestState.getPersistentDataContainer().set(playerUUIDMapKey, PersistentDataType.STRING,
                 player.getUniqueId().toString());
-        chestState.update();
+
+        // Salva i dati persistenti sul blocco
+        chestState.update(true);
+
+        Inventory chestInventory = ((Chest) locationToPlaceBlock.getBlock().getState()).getInventory();
+
+        for (ItemStack item : lootList) {
+            chestInventory.addItem(item);
+        }
     }
 
     private void initializeRegions() {
-        World world = PirateCore.get().getServer().getWorld(worldUUID);
+        if (this.worldUUID == null) {
+            Logs.sendLog("deubg","worldUUID non è configurato correttamente in settings/treasure.yml!");
+            return;
+        }
+
+        World world = PirateCore.get().getServer().getWorld(this.worldUUID);
+
+        // Se non lo trova per UUID, proviamo un fallback sul mondo principale o
+        // lanciamo un avviso chiaro
+        if (world == null) {
+            Logs.sendLog("deubg","IMPOSSIBILE TROVARE IL MONDO CON UUID: " + this.worldUUID);
+            Logs.sendLog("deubg","Assicurati che il mondo sia caricato e che l'UUID in settings/treasure.yml sia corretto.");
+            return;
+        }
+
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         regions = container.get(BukkitAdapter.adapt(world));
     }
@@ -163,7 +229,7 @@ public class TreasureMapManager {
                 ConfigManager.getInstance().getString(filePath, player.getUniqueId().toString() + ".mission_UUID"));
 
         // PREMIARE PLAYER
-        PlayerManager.getInstance().addXP(player, 100, false);
+        PlayerManager.getInstance().addXP(player, 100, false, 1.0);
 
         Logs.sendListMessageToPlayer(
                 player,
@@ -207,6 +273,9 @@ public class TreasureMapManager {
 
         World world = PirateCore.get().getServer().getWorld(worldUUID);
         Location loc = new Location(world, chestPosition.get(0), chestPosition.get(1), chestPosition.get(2));
+
+        ((Chest) loc.getBlock().getState()).getInventory().clear();
+
         loc.getBlock().setType(Material.AIR);
 
         Player p = PirateCore.get().getServer().getPlayer(playerUUID);
@@ -234,18 +303,20 @@ public class TreasureMapManager {
         player.getInventory().addItem(defaultMap);
     }
 
-    public int[] getRandomLocation() {
+    public int[] getRandomLocation(Rarity rarity) {
 
         Map<String, ProtectedRegion> regions_list = regions.getRegions();
-        int radius = 30;
 
-        int random_z = ThreadLocalRandom.current().nextInt(middleMap_x_z[1] - radius, middleMap_x_z[1] + radius);
+        int radius = spawnRadius + (rarity.getVal() * deltaRadius);
+
+        int random_z = ThreadLocalRandom.current().nextInt(middleMap_x_z.get(1) - radius,
+                middleMap_x_z.get(1) + radius);
 
         Integer random_x = null;
 
         while (random_x == null) {
             int temp_x = ThreadLocalRandom.current()
-                    .nextInt(middleMap_x_z[0] - radius, middleMap_x_z[0] + radius);
+                    .nextInt(middleMap_x_z.get(0) - radius, middleMap_x_z.get(0) + radius);
 
             boolean valid = regions_list.values().stream()
                     .noneMatch(region -> region.contains(BlockVector2.at(temp_x, random_z)));
@@ -393,7 +464,7 @@ public class TreasureMapManager {
         UUID map_uuid = UUID
                 .fromString(map_meta.getPersistentDataContainer().get(uuidMapKey, PersistentDataType.STRING));
 
-        int[] location = getRandomLocation();
+        int[] location = getRandomLocation(rarity);
         String stringLocation = Utils.coordToString(location[0], location[1]);
 
         ItemStack filledMap = generateFilledMap(player, location);

@@ -167,7 +167,6 @@ public class ConfigManager {
     /**
      * Ottiene una lista
      */
-    @SuppressWarnings("unchecked")
     public <T> List<T> getList(String filePath, String path) {
         return (List<T>) getConfig(filePath).getList(path);
     }

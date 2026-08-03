@@ -27,7 +27,7 @@ public class ArmorStandListener implements Listener {
         ArmorStand as = (ArmorStand) event.getEntity();
         Player player = (Player) event.getDamager();
         
-        if (as.getPersistentDataContainer().has(BarrelManager.actualLifeKey, PersistentDataType.INTEGER)){
+        if (as.getPersistentDataContainer().has(BarrelManager.ACTUAL_LIFE, PersistentDataType.INTEGER)){
             BarrelManager.getInstance().onBarrelHit(player, as);
         }
 

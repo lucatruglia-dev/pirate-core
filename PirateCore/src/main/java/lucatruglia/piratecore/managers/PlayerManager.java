@@ -25,18 +25,24 @@ public class PlayerManager {
         instance = this;
     }
 
-    public void addMoney(Player player, double amount, boolean sendMsg){
+    public void addMoney(Player player, double amount, boolean sendMsg, Double multiplier){
+        if(multiplier==null){
+            multiplier = 1.0;
+        }
         if(EconomyManager.getEconomy() == null){
             Logs.sendLog("ECONOMY", "SI È VERIFICATO UN ERRORE");
             return;
         }
-        EconomyManager.getEconomy().depositPlayer(player, amount);
+        EconomyManager.getEconomy().depositPlayer(player, amount*multiplier);
         if(sendMsg)
             Logs.sendSuccessMessageToPlayer(player, "Balance", "Hai guadagnato "+amount+ "dobloni");
     }
 
-    public void addXP(Player player, double amount, boolean sendMsg){
-        this.setXP_p(player, amount, true);
+    public void addXP(Player player, double amount, boolean sendMsg, Double multiplier){
+        if(multiplier==null){
+            multiplier = 1.0;
+        }
+        this.setXP_p(player, amount*multiplier, true);
         
         BossBarManager.getInstance().showPlayerLevelBar(player);
         if(sendMsg)

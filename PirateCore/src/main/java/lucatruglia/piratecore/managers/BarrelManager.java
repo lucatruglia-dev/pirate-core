@@ -1,43 +1,32 @@
 package lucatruglia.piratecore.managers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
+import java.util.*;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.BlockDisplay;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TextDisplay;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-
 import emanondev.itemedit.ItemEdit;
 import lucatruglia.piratecore.PirateCore;
-import lucatruglia.piratecore.models.ListMessage;
-import lucatruglia.piratecore.utils.Logs;
-import lucatruglia.piratecore.utils.Utils;
+import lucatruglia.piratecore.events.OnBarrelDestroyEvent;
+import lucatruglia.piratecore.events.OnBarrelHitEvent;
+import lucatruglia.piratecore.models.*;
+import lucatruglia.piratecore.utils.*;
 
 public class BarrelManager {
-    private static BarrelManager instance;
 
+    private static BarrelManager instance;
     private FileConfiguration config;
 
-    public static NamespacedKey actualLifeKey;
-    public static NamespacedKey maxLifeKey;
-    public static NamespacedKey xpRewardKey;
-    public static NamespacedKey moneyRewardKey;
-    public static NamespacedKey idKey;
-    public static NamespacedKey textUUIDKey;
-    public static NamespacedKey blockUUIDKey;
+    // --- NamespacedKeys ---
+    public static NamespacedKey ACTUAL_LIFE;
+    public static NamespacedKey MAX_LIFE;
+    public static NamespacedKey XP_REWARD;
+    public static NamespacedKey MONEY_REWARD;
+    public static NamespacedKey BARREL_ID;
+    public static NamespacedKey TEXT_UUID;
+    public static NamespacedKey BLOCK_UUID;
 
     public static BarrelManager getInstance() {
         if (instance == null) {
@@ -47,240 +36,231 @@ public class BarrelManager {
     }
 
     public void initialize() {
-        actualLifeKey = new NamespacedKey(PirateCore.get(), "life");
-        maxLifeKey = new NamespacedKey(PirateCore.get(), "maxlife");
-        xpRewardKey = new NamespacedKey(PirateCore.get(), "xpreward");
-        moneyRewardKey = new NamespacedKey(PirateCore.get(), "moneyreward");
-        idKey = new NamespacedKey(PirateCore.get(), "id");
-
-        textUUIDKey = new NamespacedKey(PirateCore.get(), "textUUID");
-        blockUUIDKey = new NamespacedKey(PirateCore.get(), "blockUUID");
-
-        config = ConfigManager.getInstance().getConfig("settings/barrels.yml");
-
-        instance = this;
+        this.config = ConfigManager.getInstance().getConfig("settings/barrels.yml");
+        initKeys();
     }
 
-    public String getBarrelName(int life, int maxlife, double xp, int money) {
-        StringBuilder result = new StringBuilder();
-
-        // result.append("&a&lXP: &r&a+").append(xp).append("\n");
-        // result.append("&e&lMONEY: &r&e+").append(money).append("\n\n"); // doppio a
-        // capo per staccare i cuori
-
-        // result.append("&4&l");
-        for (int i = 0; i < life; i++) {
-            result.append("&4&l❤");
-        }
-
-        for (int i = 0; i < (maxlife - life); i++) {
-            result.append("&7&l❤");
-        }
-
-
-        result.append("\n&a+" + Utils.formatDouble(xp) + "XP");
-        result.append("\n&a+" + money + " Money");
-
-        return Utils.colorize(result.toString());
+    private void initKeys() {
+        ACTUAL_LIFE = key("life");
+        MAX_LIFE = key("maxlife");
+        XP_REWARD = key("xpreward");
+        MONEY_REWARD = key("moneyreward");
+        BARREL_ID = key("id");
+        TEXT_UUID = key("textUUID");
+        BLOCK_UUID = key("blockUUID");
     }
 
-    private List<ItemStack> getDrops(String ID) {
-        List<String> drops_id = (List<String>) config.getList("barrels." + ID + ".drops");
-        List<ItemStack> items = new ArrayList<>();
-        for (String string : drops_id) {
-
-            ItemStack tempItem = ItemEdit.get().getServerStorage().getItem(string).clone();
-
-            if (tempItem != null) {
-                items.add(tempItem);
-            }
-        }
-        return items;
+    private static NamespacedKey key(String name) {
+        return new NamespacedKey(PirateCore.get(), name);
     }
 
-    public boolean spawnBarrel(Location loc, String ID) {
-        int life = config.getInt("barrels." + ID + ".life");
-        double xpReward = config.getDouble("barrels." + ID + ".xp_reward");
-        int moneyReward = config.getInt("barrels." + ID + ".money_reward");
+    // ---------- Spawn (ritorna UUID / null) ----------
 
-        return spawnBarrel(loc, life, xpReward, moneyReward, ID);
+    public BarrelData spawnBarrel(Location loc, String configId) {
+        int life = config.getInt("barrels." + configId + ".life");
+        double xp = config.getDouble("barrels." + configId + ".xp_reward");
+        int money = config.getInt("barrels." + configId + ".money_reward");
+        return spawnBarrel(loc, life, xp, money, configId);
     }
 
-    public boolean spawnBarrel(Location loc, int maxLife, double xpReward, int moneyReward, String id) {
+    public BarrelData spawnBarrel(Location loc, int maxLife, double xpReward, int moneyReward, String id) {
 
-        Location onAirLocation = findAirAboveWaterOnAxisY(loc);
+        Location airLoc = findAirAboveWaterOnAxisY(loc);
+        if (airLoc == null)
+            return null;
 
-        if (onAirLocation == null) {
-            return false;
-        }
+        World world = airLoc.getWorld();
+        int bx = airLoc.getBlockX();
+        int bz = airLoc.getBlockZ();
 
-        loc = onAirLocation.clone();
+        // ArmorStand: centro del blocco, 1 sotto
+        Location asLoc = new Location(world, bx + 0.5, airLoc.getBlockY() - 1, bz + 0.5);
+        // Display: offset dal blocco
+        Location dispLoc = new Location(world, bx, airLoc.getBlockY() - 0.5, bz);
 
-        Location armorStandLocation = new Location(
-                loc.getWorld(),
-                loc.getBlockX() + 0.5,
-                loc.getBlockY() - 1,
-                loc.getBlockZ() + 0.5);
-
-        Location displayLocation = new Location(
-                loc.getWorld(),
-                loc.getBlockX(),
-                loc.getBlockY() - 0.5,
-                loc.getBlockZ());
-
-        TextDisplay td = loc.getWorld().spawn(displayLocation.clone().add(0.5, 1.5, 0.5), TextDisplay.class);
+        // --- Spawn entità ---
+        TextDisplay td = world.spawn(dispLoc.clone().add(0.5, 1.5, 0.5), TextDisplay.class);
         td.setText(getBarrelName(maxLife, maxLife, xpReward, moneyReward));
         td.setBillboard(Display.Billboard.CENTER);
 
-        ArmorStand as = (ArmorStand) armorStandLocation.getWorld().spawnEntity(armorStandLocation,
-                EntityType.ARMOR_STAND);
-
+        ArmorStand as = (ArmorStand) world.spawnEntity(asLoc, EntityType.ARMOR_STAND);
         as.setSmall(false);
         as.setInvulnerable(false);
         as.setInvisible(true);
         as.setGravity(false);
-
-        as.getPersistentDataContainer().set(actualLifeKey, PersistentDataType.INTEGER, maxLife);
-        as.getPersistentDataContainer().set(maxLifeKey, PersistentDataType.INTEGER, maxLife);
-        as.getPersistentDataContainer().set(moneyRewardKey, PersistentDataType.INTEGER, moneyReward);
-        as.getPersistentDataContainer().set(xpRewardKey, PersistentDataType.DOUBLE, xpReward);
-        as.getPersistentDataContainer().set(idKey, PersistentDataType.STRING, id);
-
-        // as.setCustomName(getBarrelName(maxLife, maxLife, 50, 0));
-
         as.setCustomNameVisible(false);
 
-        BlockDisplay bd = loc.getWorld().spawn(displayLocation, BlockDisplay.class);
+        BlockDisplay bd = world.spawn(dispLoc, BlockDisplay.class);
         bd.setBlock(Material.BARREL.createBlockData());
 
-        // TEXTDISPLAY: td; ARMORSTAND: as; BLOCKDISPLAY: bd;
+        // --- Persistenza dati su ArmorStand ---
+        setPDC(as, ACTUAL_LIFE, PersistentDataType.INTEGER, maxLife);
+        setPDC(as, MAX_LIFE, PersistentDataType.INTEGER, maxLife);
+        setPDC(as, MONEY_REWARD, PersistentDataType.INTEGER, moneyReward);
+        setPDC(as, XP_REWARD, PersistentDataType.DOUBLE, xpReward);
+        setPDC(as, BARREL_ID, PersistentDataType.STRING, id);
+        setPDC(as, TEXT_UUID, PersistentDataType.STRING, td.getUniqueId().toString());
+        setPDC(as, BLOCK_UUID, PersistentDataType.STRING, bd.getUniqueId().toString());
 
-        as.getPersistentDataContainer().set(textUUIDKey, PersistentDataType.STRING, "" + td.getUniqueId());
-        as.getPersistentDataContainer().set(blockUUIDKey, PersistentDataType.STRING, "" + bd.getUniqueId());
-
+        // --- Animazione ---
         AnimationManager.getInstance().aggiungiBarile(bd);
 
+        // ✅ Ritorna tutti gli UUID
+        return new BarrelData(as.getUniqueId(), bd.getUniqueId(), td.getUniqueId(), id);
+    }
+
+    // ---------- Helper PDC ----------
+
+    public static <T, Z> Z getPDC(ArmorStand as, NamespacedKey key, PersistentDataType<T, Z> type) {
+        return as.getPersistentDataContainer().get(key, type);
+    }
+
+    private static <T, Z> void setPDC(ArmorStand as, NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
+        as.getPersistentDataContainer().set(key, type, value);
+    }
+
+    // ---------- Rimozione / Update ----------
+
+    public void removeBlockDisplay(ArmorStand as) {
+        String raw = getPDC(as, BLOCK_UUID, PersistentDataType.STRING);
+        if (raw == null) {
+            Logs.sendLog("BlockDisplay", "UUID mancante su ArmorStand " + as.getUniqueId());
+            return;
+        }
+        Entity entity = Bukkit.getEntity(UUID.fromString(raw));
+        if (entity instanceof BlockDisplay bd) {
+            bd.remove();
+        } else {
+            Logs.sendLog("BlockDisplay -> " + raw, "Entità inesistente");
+        }
+    }
+
+    public void updateTextDisplay(ArmorStand as, boolean remove) {
+        String raw = getPDC(as, TEXT_UUID, PersistentDataType.STRING);
+        if (raw == null)
+            return;
+
+        Entity entity = Bukkit.getEntity(UUID.fromString(raw));
+        if (!(entity instanceof TextDisplay td)) {
+            Logs.sendLog("TextDisplay -> " + raw, "Entità inesistente");
+            return;
+        }
+
+        int life = getPDC(as, ACTUAL_LIFE, PersistentDataType.INTEGER);
+        int max = getPDC(as, MAX_LIFE, PersistentDataType.INTEGER);
+        double xp = getPDC(as, XP_REWARD, PersistentDataType.DOUBLE);
+        int money = getPDC(as, MONEY_REWARD, PersistentDataType.INTEGER);
+
+        td.setText(getBarrelName(life, max, xp, money));
+
+        if (remove)
+            td.remove();
+    }
+
+    // ---------- Hit ----------
+
+    public void onBarrelHit(Player player, ArmorStand as) {
+        int life = getPDC(as, ACTUAL_LIFE, PersistentDataType.INTEGER);
+        life--;
+        BarrelReward reward = new BarrelReward(getPDC(as, XP_REWARD, PersistentDataType.DOUBLE), getPDC(as, MONEY_REWARD, PersistentDataType.INTEGER));
+
+        BarrelData barrelInfo = getBarrelResult(as);
+        OnBarrelHitEvent hitEvent = new OnBarrelHitEvent(player, barrelInfo, reward, life);
+        Bukkit.getServer().getPluginManager().callEvent(hitEvent);
+
+        if (life <= 0) {
+            OnBarrelDestroyEvent destroyEvent = new OnBarrelDestroyEvent(player, barrelInfo, reward);
+            destroyBarrel(as, player);
+            Bukkit.getServer().getPluginManager().callEvent(destroyEvent);
+        } else {
+            setPDC(as, ACTUAL_LIFE, PersistentDataType.INTEGER, life);
+            updateTextDisplay(as, false);
+        }
+    }
+
+    // ---------- Distruzione ----------
+
+    /**
+     * Distrugge un barrel dato l'UUID dell'ArmorStand.
+     * 
+     * @return true se il barrel è stato trovato e distrutto, false altrimenti
+     */
+    public boolean destroyBarrel(UUID armorStandUUID, Player player) {
+        Entity entity = Bukkit.getEntity(armorStandUUID);
+        if (!(entity instanceof ArmorStand as))
+            return false;
+
+        // Verifica che sia effettivamente un barrel (controllo PDC)
+        String id = getPDC(as, BARREL_ID, PersistentDataType.STRING);
+        if (id == null)
+            return false;
+
+        destroyBarrel(as, player);
         return true;
     }
 
-    public void removeBlockDisplay(ArmorStand armorStand) {
-
-        String blockUUID = armorStand.getPersistentDataContainer().get(blockUUIDKey, PersistentDataType.STRING);
-        BlockDisplay display = (BlockDisplay) Bukkit.getEntity(UUID.fromString(blockUUID));
-
-        if (display == null) {
-            Logs.sendLog("BlockDisplay -> " + blockUUID, "Entità inesistente");
-            return;
-        }
-
-        display.remove();
-
+    /**
+     * Distrugge un barrel dato un BarrelData.
+     */
+    public boolean destroyBarrel(BarrelData result, Player player) {
+        return destroyBarrel(result.armorStandUUID(), player);
     }
 
-    public void updateTextDisplay(ArmorStand armorStand, boolean remove) {
+    /**
+     * Logica effettiva di distruzione (già con l'ArmorStand in mano).
+     */
+    private void destroyBarrel(ArmorStand as, Player player) {
+        // Effetti
+        as.getWorld().playSound(as.getLocation(), Sound.ENTITY_ARMOR_STAND_BREAK, 1f, 1f);
 
-        String textUUID = armorStand.getPersistentDataContainer().get(textUUIDKey, PersistentDataType.STRING);
-        TextDisplay display = (TextDisplay) Bukkit.getEntity(UUID.fromString(textUUID));
-        
-        if (display == null) {
-            Logs.sendLog("TextDisplay -> " + textUUID, "Entità inesistente");
-            return;
-        }
-
-        int colpiRimasti = armorStand.getPersistentDataContainer().get(BarrelManager.actualLifeKey,
-                PersistentDataType.INTEGER);
-        double xpReward = armorStand.getPersistentDataContainer().get(BarrelManager.xpRewardKey,
-                PersistentDataType.DOUBLE);
-        int moneyReward = armorStand.getPersistentDataContainer().get(BarrelManager.moneyRewardKey,
-                PersistentDataType.INTEGER);
-        int maxLife = armorStand.getPersistentDataContainer().get(BarrelManager.maxLifeKey, PersistentDataType.INTEGER);
-
-        display.setText(getBarrelName(colpiRimasti, maxLife, xpReward, moneyReward));
-
-        if (remove) {
-            display.remove();
-        }
-
+        // Pulizia entità
+        removeBlockDisplay(as);
+        updateTextDisplay(as, true);
+        as.remove();
     }
 
-    public Location findAirAboveWaterOnAxisY(Location startLoc) {
-        if (startLoc == null || startLoc.getWorld() == null) {
+    // ---------- Utility immutate (o quasi) ----------
+
+    public BarrelData getBarrelResult(ArmorStand as) {
+        UUID textUUID = UUID.fromString(getPDC(as, TEXT_UUID, PersistentDataType.STRING));
+        UUID blockUUID = UUID.fromString(getPDC(as, BLOCK_UUID, PersistentDataType.STRING));
+        String config_id = getPDC(as, BARREL_ID, PersistentDataType.STRING);
+
+        return new BarrelData(as.getUniqueId(), blockUUID, textUUID, config_id);
+    }
+
+    private String getBarrelName(int life, int maxLife, double xp, int money) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("&4&l").append("❤".repeat(life));
+        sb.append("&7&l").append("❤".repeat(maxLife - life));
+        sb.append("\n&a+").append(Utils.formatDouble(xp)).append("XP");
+        sb.append("\n&a+").append(money).append(" Money");
+        return Utils.colorize(sb.toString());
+    }
+
+    public List<ItemStack> getDrops(String id) {
+        List<String> dropIds = config.getStringList("barrels." + id + ".drops");
+        return dropIds.stream()
+                .map(dropId -> ItemEdit.get().getServerStorage().getItem(dropId))
+                .filter(Objects::nonNull)
+                .map(ItemStack::clone)
+                .toList();
+    }
+
+    private Location findAirAboveWaterOnAxisY(Location start) {
+        if (start == null || start.getWorld() == null)
             return null;
-        }
 
-        var world = startLoc.getWorld();
-        int blockX = startLoc.getBlockX();
-        int blockZ = startLoc.getBlockZ();
+        World world = start.getWorld();
+        int bx = start.getBlockX();
+        int bz = start.getBlockZ();
 
-        int maxHeight = world.getMaxHeight(); // Solitamente 320 da 1.18+
-        int minHeight = world.getMinHeight(); // Solitamente -64 da 1.18+
-
-        for (int y = maxHeight - 1; y >= minHeight; y--) {
-            Block currentBlock = world.getBlockAt(blockX, y, blockZ);
-
-            // Se troviamo l'acqua...
-            if (currentBlock.getType() == Material.WATER) {
-                Block aboveBlock = currentBlock.getRelative(0, 1, 0);
-
-                if (aboveBlock.getType().isAir()) {
-                    return aboveBlock.getLocation();
-                }
+        for (int y = world.getMaxHeight() - 1; y >= world.getMinHeight(); y--) {
+            Block block = world.getBlockAt(bx, y, bz);
+            if (block.getType() == Material.WATER && block.getRelative(0, 1, 0).getType().isAir()) {
+                return block.getRelative(0, 1, 0).getLocation();
             }
         }
-
         return null;
-    }
-
-    public void onBarrelHit(Player player, ArmorStand as) {
-        // Recuperiamo i colpi rimasti
-        int colpiRimasti = as.getPersistentDataContainer().get(BarrelManager.actualLifeKey, PersistentDataType.INTEGER);
-        double xpReward = as.getPersistentDataContainer().get(BarrelManager.xpRewardKey, PersistentDataType.DOUBLE);
-        int moneyReward = as.getPersistentDataContainer().get(BarrelManager.moneyRewardKey, PersistentDataType.INTEGER);
-        //int maxLife = as.getPersistentDataContainer().get(BarrelManager.maxLifeKey, PersistentDataType.INTEGER);
-        String id = as.getPersistentDataContainer().get(BarrelManager.idKey, PersistentDataType.STRING);
-
-        // Riduciamo i colpi di 1
-        colpiRimasti--;
-
-        if (colpiRimasti <= 0) {
-
-            List<ItemStack> drops = getDrops(id);
-
-            if (!drops.isEmpty()) {
-                for (ItemStack item : drops) {
-                    PlayerManager.getInstance().dropItem(player, item);
-                }
-            }
-
-            Logs.sendListMessageToPlayer(player, new ListMessage("Barrel distrutto", List.of(
-                    new ListMessage.Row("XP", "+" + xpReward),
-                    new ListMessage.Row("Dobloni", "+" + moneyReward + "$"))));
-
-            PlayerManager.getInstance().addXP(player, xpReward, false);
-            PlayerManager.getInstance().addMoney(player, (double) moneyReward, false);
-
-            as.getWorld().playSound(as.getLocation(), Sound.ENTITY_ARMOR_STAND_BREAK, 1.0f, 1.0f);
-            removeBlockDisplay(as);
-            updateTextDisplay(as, true);
-            as.remove();
-        } else {
-            // Altrimenti aggiorniamo i dati e il nome visibile
-            // as.getWorld().playSound(as.getLocation(), Sound.ENTITY_ARMOR_STAND_HIT, 1.0f,
-            // 1.0f);
-            as.getPersistentDataContainer().set(BarrelManager.actualLifeKey, PersistentDataType.INTEGER, colpiRimasti);
-            updateTextDisplay(as, false);
-        }
-
-        /*
-         * Logs.sendListMessageToPlayer(player,
-         * 
-         * new ListMessage("Stato barrel", List.of(
-         * new ListMessage.Row("Life", ""+colpiRimasti),
-         * new ListMessage.Row("MaxLife", ""+maxLife),
-         * new ListMessage.Row("XP Reward", ""+xpReward),
-         * new ListMessage.Row("Money Reward", ""+moneyReward)
-         * ))
-         * );
-         */
     }
 }

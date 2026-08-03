@@ -1,11 +1,15 @@
 package lucatruglia.piratecore.command;
 
+import org.bukkit.Location;
+import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
-
+import emanondev.itemedit.ItemEdit;
 import lucatruglia.piratecore.managers.TreasureMapManager;
 import lucatruglia.piratecore.managers.TreasureMapManager.Rarity;
 import lucatruglia.piratecore.utils.Logs;
@@ -27,7 +31,7 @@ public class MapCommand implements CommandExecutor {
             return true;
         }
 
-        if (args.length >= 2) {
+        if (args.length >= 3) {
             Logs.sendWarningMessageToPlayer(player, "kMap", "Comando errato: /kmap give");
             return true;
         }
@@ -64,7 +68,8 @@ public class MapCommand implements CommandExecutor {
         Logs.sendSuccessMessageToPlayer(player, "kMap", "Comando corretto");
         */
         if(args[0].equalsIgnoreCase("give")){
-            TreasureMapManager.getInstance().giveMap(player, Rarity.EPIC);
+            Rarity rarity = Rarity.valueOf(args[1].toUpperCase());
+            TreasureMapManager.getInstance().giveMap(player, rarity);
             Logs.sendSuccessMessageToPlayer(player, "kMap", "Mappa givvata");
         }
         else if (args[0].equalsIgnoreCase("test")){
@@ -74,6 +79,16 @@ public class MapCommand implements CommandExecutor {
             // player.teleport(loc);
             // Logs.sendSuccessMessageToPlayer(player, "DEBUG", "Teletrasportato a "+Utils.coordToString(randomPos[0], randomPos[1]));
             // TreasureMapManager.getInstance().test();
+
+            Location loc = new Location(player.getWorld(), 1346, 4, 900);
+
+            Chest chest = (Chest) loc.getBlock().getState();
+            Inventory chestInventory = chest.getInventory();
+            
+            ItemStack template = ItemEdit.get().getServerStorage().getItem("epic1");
+
+            chestInventory.addItem(template.clone());
+
             Logs.sendSuccessMessageToPlayer(player, "DEBUG", "tested");
             
         }

@@ -1,0 +1,43 @@
+settings:
+  worldUUID: 3f5f0ed0-5454-467a-800e-505e6d88aabf
+  spawn_radius: 10
+  delta_radius: 10
+  middle_map_x_z:
+    - 1301
+    - 907
+  
+  despawn_chest_in_minutes: 60
+  end_mission_time_in_seconds: 5
+
+COMMON:
+  - item: "common1"
+    amount: 4
+    chance: 70
+  - item: "common2"
+    amount: 16
+    chance: 50
+  - item: "common3"
+    amount: 2
+    chance: 100
+
+RARE:
+  - item: "rare1"
+    amount: 4
+    chance: 70
+  - item: "rare2"
+    amount: 16
+    chance: 50
+  - item: "rare3"
+    amount: 2
+    chance: 50
+
+EPIC:
+  - item: "epic1"
+    amount: 4
+    chance: 100
+  - item: "epic2"
+    amount: 16
+    chance: 100
+  - item: "epic3"
+    amount: 2
+    chance: 100

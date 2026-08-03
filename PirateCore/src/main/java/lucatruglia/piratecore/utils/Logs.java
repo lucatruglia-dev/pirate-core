@@ -21,25 +21,35 @@ public class Logs {
     }
 
     public static void sendSuccessActionBarToPlayer(Player player, String object, String text) {
+        if(player == null || !player.isOnline())
+            return;
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(Utils.colorize("&a&l[&r&a" + object + "&a&l] &a" + text)));
     }
 
     public static void sendWarningActionBarToPlayer(Player player, String object, String text) {
+        if(player == null || !player.isOnline())
+            return;
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(Utils.colorize("&c&l[&r&4" + object + "&c&l] &a" + text)));
     }
 
 
     public static void sendSuccessMessageToPlayer(Player player, String object, String text) {
+        if(player == null || !player.isOnline())
+            return;
         player.sendMessage(
                 Utils.colorize("&a&l[&r&a" + object + "&a&l] &a" + text));
     }
 
     public static void sendWarningMessageToPlayer(Player player, String object, String text) {
+        if(player == null || !player.isOnline())
+            return;
         player.sendMessage(
                 Utils.colorize("&c&l[&r&4" + object + "&c&l] &c" + text));
     }
 
     public static void sendListMessageToPlayer(Player player, ListMessage listMessage) {
+        if(player == null || !player.isOnline())
+            return;
         List<String> fullMessage = new ArrayList<>();
 
         fullMessage.add(Utils.colorize(""));

@@ -8,11 +8,15 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import lucatruglia.piratecore.managers.AutoSpawnerManager;
 import lucatruglia.piratecore.managers.BarrelManager;
+import lucatruglia.piratecore.models.BarrelData;
 import lucatruglia.piratecore.models.ListMessage;
 import lucatruglia.piratecore.utils.Logs;
 
 public class BarrelCommand implements CommandExecutor {
+
+    //public final UUID worldUUID = UUID.fromString("b23dea45-474e-467d-bca1-e25f4c973dd3");
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -21,12 +25,13 @@ public class BarrelCommand implements CommandExecutor {
                 Player p = (Player) sender;
                 Location loc = p.getLocation();
 
-                boolean res = BarrelManager.getInstance().spawnBarrel(loc, 6, 50, 10, "default");
-                if (res) {
-                    Logs.sendSuccessMessageToPlayer(p, "Barrel", "Barrel spawnato");
-                } else {
-                    Logs.sendWarningMessageToPlayer(p, "Barrel", "Nessun blocco d'acqua trovato");
-                }
+                BarrelData res = BarrelManager.getInstance().spawnBarrel(loc, "barile1");
+                if (res==null) {
+                    Logs.sendWarningMessageToPlayer(p, "kBarrel", "Error.");
+                    return true;
+                } 
+
+                Logs.sendSuccessMessageToPlayer(p, "kBarrel", "Spawnato.");
 
                 return true;
             }
@@ -35,30 +40,22 @@ public class BarrelCommand implements CommandExecutor {
                 Player p = (Player) sender;
                 Location loc = p.getLocation();
 
-                boolean res = BarrelManager.getInstance().spawnBarrel(loc, args[1]);
-                if (res) {
-                    Logs.sendSuccessMessageToPlayer(p, "Barrel", "Barrel spawnato");
-                } else {
-                    Logs.sendWarningMessageToPlayer(p, "Barrel", "Nessun blocco d'acqua trovato");
-                }
+                BarrelData res = BarrelManager.getInstance().spawnBarrel(loc, args[1]);
+                if (res==null) {
+                    Logs.sendWarningMessageToPlayer(p, "kBarrel", "Error.");
+                    return true;
+                } 
+
+                Logs.sendSuccessMessageToPlayer(p, "kBarrel", "Spawnato.");
+
                 return true;
             }
 
-            else if (args[0].equalsIgnoreCase("cs") && args.length == 4) {
-                Player p = (Player) sender;
-                Location loc = p.getLocation();
-                int maxlife = Integer.parseInt(args[1]);
-                double xpReward = Double.parseDouble(args[2]);
-                int moneyReward = Integer.parseInt(args[3]);
-
-                boolean res = BarrelManager.getInstance().spawnBarrel(loc, maxlife, xpReward, moneyReward, "default");
-                if (res) {
-                    Logs.sendSuccessMessageToPlayer(p, "Barrel", "Barrel spawnato");
-                } else {
-                    Logs.sendWarningMessageToPlayer(p, "Barrel", "Nessun blocco d'acqua trovato");
-                }
-                return true;
+            if (args[0].equalsIgnoreCase("autospawn")) {
+                AutoSpawnerManager.getInstance().barrel();
             }
+
+            
         }
 
         if (sender instanceof Player) {
@@ -71,5 +68,7 @@ public class BarrelCommand implements CommandExecutor {
 
         return true;
     }
+
+
 
 }

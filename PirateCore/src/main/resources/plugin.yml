@@ -20,3 +20,6 @@ commands:
   kmap:
     description: "level command"
     usage: "/kmap"
+  kboat:
+    description: "level command"
+    usage: "/kboat"

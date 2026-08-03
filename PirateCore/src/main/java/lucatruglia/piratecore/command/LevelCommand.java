@@ -86,7 +86,7 @@ public class LevelCommand implements CommandExecutor {
 
     private void addXPSubCommand(Player player, String targetPlayer, String amount) {
         Player targetP = PirateCore.get().getServer().getPlayer(targetPlayer);
-        PlayerManager.getInstance().addXP(targetP, Double.parseDouble(amount), true);
+        PlayerManager.getInstance().addXP(targetP, Double.parseDouble(amount), true, 1.0);
 
         player.sendMessage("(" + targetPlayer + ") -> aggiunto xp: " + amount);
     }

@@ -19,7 +19,7 @@ public class OpenTreasureChestListener implements Listener {
 
         Logs.sendLog("onPlayerOpenTreasureChest", ""+player.getName()+" sta provando ad aprire il tesoro ("+mapUUID.toString()+")");
 
-        if(player.getUniqueId() == chestOwnerUUID){
+        if(!player.getUniqueId().equals(chestOwnerUUID)){
             Logs.sendWarningMessageToPlayer(player, "kMap", "Non puoi aprire il tesoro di qualcun altro.");
             return;
         }

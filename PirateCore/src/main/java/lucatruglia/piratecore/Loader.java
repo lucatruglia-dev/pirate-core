@@ -3,6 +3,9 @@ package lucatruglia.piratecore;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import lucatruglia.piratecore.boat.BoatManager;
+import lucatruglia.piratecore.boat.InventoryManager;
+import lucatruglia.piratecore.boat.PlayerInteractWithBoat;
 import lucatruglia.piratecore.command.*;
 import lucatruglia.piratecore.extensions.*;
 import lucatruglia.piratecore.listeners.*;
@@ -17,6 +20,10 @@ import org.bukkit.plugin.Plugin;
 public class Loader {
 
     public static void loadManagers(JavaPlugin plugin) {
+        try { AutoSpawnerManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "AutoSpawnerManager", e); }
+        try { InventoryManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "InventoryManager", e); }
+        try { BoatManager.getInstance().initialize(); } catch (Exception e) { logAndThrow(plugin, "BoatManager", e); }
+        try { LootManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "LootManager", e); }
         try { TreasureMapManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "TreasureMapManager", e); }
         try { BossBarManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "BossBarManager", e); }
         try { ConfigManager.getInstance().initialize(); } catch (Exception e) { logAndThrow(plugin, "ConfigManager", e); }
@@ -41,6 +48,9 @@ public class Loader {
         plugin.getServer().getPluginManager().registerEvents(new LevelUpListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new MapClickListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new OpenTreasureChestListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new PlayerInteractWithBoat(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new OnBarrelDestroyListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new OnBarrelHitListener(), plugin);
     }
 
     public static void loadCommands(JavaPlugin plugin) {
@@ -48,6 +58,7 @@ public class Loader {
         registerCommand(plugin, "kbar", new BossBarCommand());
         registerCommand(plugin, "kbarrel", new BarrelCommand());
         registerCommand(plugin, "kmap", new MapCommand());
+        registerCommand(plugin, "kboat", new BoatCommand());
     }
 
     public static void loadTasks(JavaPlugin plugin){

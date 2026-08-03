@@ -70,10 +70,10 @@ public class RewardManager {
         int amount = data.getInt(basePath + ".amount");
 
         double reward_multiplier = getRewardMultiplier(player);
-        double reward = data.getInt(basePath + ".reward") * reward_multiplier;
+        double reward = data.getInt(basePath + ".reward");
 
         if (currentValue >= amount && currentValue % amount == 0) {
-            PlayerManager.getInstance().addXP(player, reward, true);
+            PlayerManager.getInstance().addXP(player, reward, true, reward_multiplier);
             Logs.sendLog("RewardManager", player.getName() + " ha ricevuto " + reward + "XP per " + conditionKey);
 
             return true;

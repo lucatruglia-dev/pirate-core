@@ -14,6 +14,7 @@ import com.gamingmesh.jobs.container.JobProgression;
 import com.gamingmesh.jobs.container.JobsPlayer;
 
 import lucatruglia.piratecore.PirateCore;
+import lucatruglia.piratecore.boat.InventoryManager;
 import lucatruglia.piratecore.managers.DatabaseManager;
 import lucatruglia.piratecore.managers.PlayerManager;
 import lucatruglia.piratecore.managers.RewardManager;
@@ -32,6 +33,8 @@ public class PlayerListener implements Listener {
             PlayerManager.getInstance().initPlayerData(new PlayerData(p.getUniqueId(), p.getName(), 0, 0));
             Logs.sendLog("onPlayerJoin", p.getName() + " è stato aggiunto al db");
         }
+
+        InventoryManager.getInstance().initializePlayer(p, 27, "Spazio personale");
     }
 
     @EventHandler
@@ -88,7 +91,7 @@ public class PlayerListener implements Listener {
                 //         + " in " + job.getName() + "!");
 
                 Logs.sendSuccessMessageToPlayer(jPlayer.getPlayer(), job.getName(), "Hai raggiunto il livello &e" + newLevel);
-                PlayerManager.getInstance().addXP(jPlayer.getPlayer(), 100.0, true);
+                PlayerManager.getInstance().addXP(jPlayer.getPlayer(), 100.0, true, 1.0);
             }
         }
     }
