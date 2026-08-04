@@ -1,4 +1,4 @@
-package lucatruglia.piratecore;
+package lucatruglia.piratecore.managers.treasure;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

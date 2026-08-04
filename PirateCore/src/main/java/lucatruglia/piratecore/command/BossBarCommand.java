@@ -5,7 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import lucatruglia.piratecore.managers.BossBarManager;
+import lucatruglia.piratecore.managers.player.BossBarManager;
 import lucatruglia.piratecore.utils.Logs;
 
 public class BossBarCommand implements CommandExecutor{

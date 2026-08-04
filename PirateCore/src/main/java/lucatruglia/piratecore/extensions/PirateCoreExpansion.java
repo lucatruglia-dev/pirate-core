@@ -1,7 +1,7 @@
 package lucatruglia.piratecore.extensions;
 
-import lucatruglia.piratecore.managers.DatabaseManager;
-import lucatruglia.piratecore.managers.LevelManager;
+import lucatruglia.piratecore.managers.economy.DatabaseManager;
+import lucatruglia.piratecore.managers.economy.LevelManager;
 import lucatruglia.piratecore.models.PlayerData;
 
 import org.bukkit.Bukkit;

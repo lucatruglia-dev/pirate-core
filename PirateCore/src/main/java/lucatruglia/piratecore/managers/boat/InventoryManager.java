@@ -1,4 +1,4 @@
-package lucatruglia.piratecore.boat;
+package lucatruglia.piratecore.managers.boat;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;

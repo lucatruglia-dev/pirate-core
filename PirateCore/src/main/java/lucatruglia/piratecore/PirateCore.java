@@ -3,7 +3,7 @@ package lucatruglia.piratecore;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import lucatruglia.piratecore.managers.BossBarManager;
+import lucatruglia.piratecore.managers.player.BossBarManager;
 
 public class PirateCore extends JavaPlugin {
 

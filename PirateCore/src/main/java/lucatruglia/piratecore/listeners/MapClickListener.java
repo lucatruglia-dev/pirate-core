@@ -16,7 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import lucatruglia.piratecore.events.OpenTreasureChestEvent;
-import lucatruglia.piratecore.managers.TreasureMapManager;
+import lucatruglia.piratecore.managers.treasure.TreasureMapManager;
 
 public class MapClickListener implements Listener {
 

@@ -5,7 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import lucatruglia.piratecore.boat.BoatManager;
+import lucatruglia.piratecore.managers.boat.BoatManager;
 
 public class BoatCommand implements CommandExecutor {
 

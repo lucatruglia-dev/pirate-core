@@ -5,7 +5,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import lucatruglia.piratecore.models.BarrelData;
-import lucatruglia.piratecore.models.BarrelReward;
+import lucatruglia.piratecore.models.Reward;
 
 public class OnBarrelHitEvent extends Event {
 
@@ -13,18 +13,18 @@ public class OnBarrelHitEvent extends Event {
 
     private final Player player;
     private final BarrelData barrelIDs;
-    private final BarrelReward barrelReward;
+    private final Reward barrelReward;
     private final int barrelLife;
     
     
-    public OnBarrelHitEvent(Player player, BarrelData barrelIDs, BarrelReward barrelReward, int barrelLife){
+    public OnBarrelHitEvent(Player player, BarrelData barrelIDs, Reward barrelReward, int barrelLife){
         this.player = player;
         this.barrelIDs = barrelIDs;
         this.barrelLife = barrelLife;
         this.barrelReward = barrelReward;
     }
     
-    public BarrelReward getBarrelReward() {
+    public Reward getBarrelReward() {
         return barrelReward;
     }
     

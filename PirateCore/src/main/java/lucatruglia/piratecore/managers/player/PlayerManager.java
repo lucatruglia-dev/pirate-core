@@ -1,4 +1,4 @@
-package lucatruglia.piratecore.managers;
+package lucatruglia.piratecore.managers.player;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -8,6 +8,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import lucatruglia.piratecore.events.LevelUpEvent;
+import lucatruglia.piratecore.managers.economy.DatabaseManager;
+import lucatruglia.piratecore.managers.economy.EconomyManager;
+import lucatruglia.piratecore.managers.economy.LevelManager;
 import lucatruglia.piratecore.models.PlayerData;
 import lucatruglia.piratecore.utils.Logs;
 

@@ -9,6 +9,32 @@ settings:
   despawn_chest_in_minutes: 60
   end_mission_time_in_seconds: 5
 
+treasure:
+  COMMON:
+    min_level: 1
+    rewards:
+      xp: 100
+      money: 100
+
+  RARE:
+    min_level: 10
+    rewards:
+      xp: 250
+      money: 200
+
+  EPIC:
+    min_level: 15
+    rewards:
+      xp: 500
+      money: 300
+
+  LEGENDARY:
+    min_level: 30
+    rewards:
+      xp: 1000
+      money: 600
+
+
 COMMON:
   - item: "common1"
     amount: 4

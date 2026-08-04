@@ -3,13 +3,24 @@ package lucatruglia.piratecore;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import lucatruglia.piratecore.boat.BoatManager;
-import lucatruglia.piratecore.boat.InventoryManager;
-import lucatruglia.piratecore.boat.PlayerInteractWithBoat;
 import lucatruglia.piratecore.command.*;
 import lucatruglia.piratecore.extensions.*;
 import lucatruglia.piratecore.listeners.*;
 import lucatruglia.piratecore.managers.*;
+import lucatruglia.piratecore.managers.barrel.AnimationManager;
+import lucatruglia.piratecore.managers.barrel.AutoSpawnerManager;
+import lucatruglia.piratecore.managers.barrel.BarrelManager;
+import lucatruglia.piratecore.managers.boat.BoatManager;
+import lucatruglia.piratecore.managers.boat.InventoryManager;
+import lucatruglia.piratecore.managers.boat.PlayerInteractWithBoat;
+import lucatruglia.piratecore.managers.economy.DatabaseManager;
+import lucatruglia.piratecore.managers.economy.EconomyManager;
+import lucatruglia.piratecore.managers.economy.LevelManager;
+import lucatruglia.piratecore.managers.economy.RewardManager;
+import lucatruglia.piratecore.managers.player.BossBarManager;
+import lucatruglia.piratecore.managers.player.PlayerManager;
+import lucatruglia.piratecore.managers.treasure.LootManager;
+import lucatruglia.piratecore.managers.treasure.TreasureMapManager;
 import lucatruglia.piratecore.utils.Utils;
 
 import org.bukkit.command.Command;
@@ -20,6 +31,7 @@ import org.bukkit.plugin.Plugin;
 public class Loader {
 
     public static void loadManagers(JavaPlugin plugin) {
+        try { TimerManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "TimerManager", e); }
         try { AutoSpawnerManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "AutoSpawnerManager", e); }
         try { InventoryManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "InventoryManager", e); }
         try { BoatManager.getInstance().initialize(); } catch (Exception e) { logAndThrow(plugin, "BoatManager", e); }
@@ -51,6 +63,9 @@ public class Loader {
         plugin.getServer().getPluginManager().registerEvents(new PlayerInteractWithBoat(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new OnBarrelDestroyListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new OnBarrelHitListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new OnPlayerStartTreasureListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new OnPlayerEndTreasureListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new OnPlayerFoundTreasureListener(), plugin);
     }
 
     public static void loadCommands(JavaPlugin plugin) {

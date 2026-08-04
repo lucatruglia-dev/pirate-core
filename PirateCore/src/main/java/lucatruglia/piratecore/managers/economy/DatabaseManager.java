@@ -1,4 +1,4 @@
-package lucatruglia.piratecore.managers;
+package lucatruglia.piratecore.managers.economy;
 
 import lucatruglia.piratecore.PirateCore;
 import lucatruglia.piratecore.models.PlayerData;

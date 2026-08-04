@@ -1,7 +1,7 @@
 package lucatruglia.piratecore.models;
 
 
-public record BarrelReward (
+public record Reward (
     Double xp,
     Integer money
 ) {}

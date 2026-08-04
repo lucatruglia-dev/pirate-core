@@ -10,8 +10,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import emanondev.itemedit.ItemEdit;
-import lucatruglia.piratecore.managers.TreasureMapManager;
-import lucatruglia.piratecore.managers.TreasureMapManager.Rarity;
+import lucatruglia.piratecore.managers.treasure.Rarity;
+import lucatruglia.piratecore.managers.treasure.TreasureMapManager;
 import lucatruglia.piratecore.utils.Logs;
 
 //kmap give 

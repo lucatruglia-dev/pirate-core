@@ -1,4 +1,4 @@
-package lucatruglia.piratecore.managers;
+package lucatruglia.piratecore.managers.barrel;
 
 import java.util.*;
 import org.bukkit.*;
@@ -11,6 +11,7 @@ import emanondev.itemedit.ItemEdit;
 import lucatruglia.piratecore.PirateCore;
 import lucatruglia.piratecore.events.OnBarrelDestroyEvent;
 import lucatruglia.piratecore.events.OnBarrelHitEvent;
+import lucatruglia.piratecore.managers.ConfigManager;
 import lucatruglia.piratecore.models.*;
 import lucatruglia.piratecore.utils.*;
 
@@ -162,7 +163,8 @@ public class BarrelManager {
     public void onBarrelHit(Player player, ArmorStand as) {
         int life = getPDC(as, ACTUAL_LIFE, PersistentDataType.INTEGER);
         life--;
-        BarrelReward reward = new BarrelReward(getPDC(as, XP_REWARD, PersistentDataType.DOUBLE), getPDC(as, MONEY_REWARD, PersistentDataType.INTEGER));
+        Reward reward = new Reward(getPDC(as, XP_REWARD, PersistentDataType.DOUBLE),
+                getPDC(as, MONEY_REWARD, PersistentDataType.INTEGER));
 
         BarrelData barrelInfo = getBarrelResult(as);
         OnBarrelHitEvent hitEvent = new OnBarrelHitEvent(player, barrelInfo, reward, life);
@@ -180,11 +182,6 @@ public class BarrelManager {
 
     // ---------- Distruzione ----------
 
-    /**
-     * Distrugge un barrel dato l'UUID dell'ArmorStand.
-     * 
-     * @return true se il barrel è stato trovato e distrutto, false altrimenti
-     */
     public boolean destroyBarrel(UUID armorStandUUID, Player player) {
         Entity entity = Bukkit.getEntity(armorStandUUID);
         if (!(entity instanceof ArmorStand as))
@@ -199,27 +196,80 @@ public class BarrelManager {
         return true;
     }
 
-    /**
-     * Distrugge un barrel dato un BarrelData.
-     */
     public boolean destroyBarrel(BarrelData result, Player player) {
         return destroyBarrel(result.armorStandUUID(), player);
     }
 
-    /**
-     * Logica effettiva di distruzione (già con l'ArmorStand in mano).
-     */
-    private void destroyBarrel(ArmorStand as, Player player) {
-        // Effetti
-        as.getWorld().playSound(as.getLocation(), Sound.ENTITY_ARMOR_STAND_BREAK, 1f, 1f);
+    // Mappa: location chiave → task di respawn programmato
+    private final Map<Long, Integer> respawnTasks = new HashMap<>();
 
-        // Pulizia entità
+    private void destroyBarrel(ArmorStand as, Player player) {
+        String configId = getPDC(as, BARREL_ID, PersistentDataType.STRING);
+        Location loc = as.getLocation().clone();
+
+        // Effetti
+        as.getWorld().playSound(loc, Sound.ENTITY_ARMOR_STAND_BREAK, 1f, 1f);
+
+        // Pulizia
         removeBlockDisplay(as);
         updateTextDisplay(as, true);
         as.remove();
+
+        // --- RESPAWN dopo 1 minuto (1200 tick) ---
+        if (configId != null) {
+            Logs.sendSuccessMessageToPlayer(player, "DESTROY BARREL", "respawn tra 5 secondi");
+            scheduleRespawn(loc, configId, 20L * 5L); // 1 minuto
+        }
     }
 
-    // ---------- Utility immutate (o quasi) ----------
+    private void scheduleRespawn(Location loc, String configId, long delayTicks) {
+        long key = chunkKey(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+
+        int taskId = Bukkit.getScheduler().runTaskLater(PirateCore.get(), () -> {
+            // Controlla se il chunk è caricato prima di spawnare, oppure spawna
+            // direttamente
+            spawnBarrel(loc, configId);
+            respawnTasks.remove(key);
+        }, delayTicks).getTaskId();
+
+        respawnTasks.put(key, taskId);
+    }
+
+    private static long chunkKey(int cx, int cz) {
+        return (long) cx & 0xFFFFFFFFL | ((long) cz & 0xFFFFFFFFL) << 32;
+    }
+
+    public BarrelData findBarrelAt(World world, int blockX, int blockZ) {
+        Chunk chunk = world.getChunkAt(blockX >> 4, blockZ >> 4);
+        if (!chunk.isLoaded())
+            return null;
+
+        for (Entity entity : chunk.getEntities()) {
+            if (!(entity instanceof ArmorStand as))
+                continue;
+
+            // Verifica che sia un barrel
+            String id = getPDC(as, BARREL_ID, PersistentDataType.STRING);
+            if (id == null)
+                continue;
+
+            // L'ArmorStand è al centro del blocco (bx+0.5, ..., bz+0.5)
+            Location loc = as.getLocation();
+            if (loc.getBlockX() == blockX && loc.getBlockZ() == blockZ) {
+                return getBarrelResult(as);
+            }
+        }
+        return null;
+    }
+
+    public boolean destroyBarrelAt(World world, int blockX, int blockZ, Player player) {
+        BarrelData data = findBarrelAt(world, blockX, blockZ);
+        if (data == null)
+            return false;
+        return destroyBarrel(data, player);
+    }
+
+    // ---------- Utility ----------
 
     public BarrelData getBarrelResult(ArmorStand as) {
         UUID textUUID = UUID.fromString(getPDC(as, TEXT_UUID, PersistentDataType.STRING));

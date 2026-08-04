@@ -1,4 +1,4 @@
-package lucatruglia.piratecore.managers;
+package lucatruglia.piratecore.managers.player;
 
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
+import lucatruglia.piratecore.managers.economy.LevelManager;
 import lucatruglia.piratecore.models.PlayerData;
 import lucatruglia.piratecore.utils.Utils;
 

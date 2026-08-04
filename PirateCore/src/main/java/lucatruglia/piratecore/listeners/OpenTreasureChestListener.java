@@ -7,7 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 import lucatruglia.piratecore.events.OpenTreasureChestEvent;
-import lucatruglia.piratecore.managers.TreasureMapManager;
+import lucatruglia.piratecore.managers.treasure.TreasureMapManager;
 import lucatruglia.piratecore.utils.Logs;
 
 public class OpenTreasureChestListener implements Listener {

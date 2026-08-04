@@ -8,11 +8,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 
 import lucatruglia.piratecore.events.OnBarrelDestroyEvent;
-import lucatruglia.piratecore.managers.BarrelManager;
-import lucatruglia.piratecore.managers.PlayerManager;
+import lucatruglia.piratecore.managers.barrel.BarrelManager;
+import lucatruglia.piratecore.managers.player.PlayerManager;
 import lucatruglia.piratecore.models.BarrelData;
-import lucatruglia.piratecore.models.BarrelReward;
 import lucatruglia.piratecore.models.ListMessage;
+import lucatruglia.piratecore.models.Reward;
 import lucatruglia.piratecore.utils.Logs;
 
 public class OnBarrelDestroyListener implements Listener {
@@ -20,7 +20,7 @@ public class OnBarrelDestroyListener implements Listener {
     public void onBarrelDestroy(OnBarrelDestroyEvent event) {
         BarrelData barrel_data = event.getBarrel_info();
         Player player = event.getPlayer();
-        BarrelReward reward = event.getBarrelReward();
+        Reward reward = event.getBarrelReward();
         String id = barrel_data.config_id();
 
         for (ItemStack item : BarrelManager.getInstance().getDrops(id)) {
@@ -34,5 +34,8 @@ public class OnBarrelDestroyListener implements Listener {
 
         PlayerManager.getInstance().addXP(player, reward.xp(), false, 1.0);
         PlayerManager.getInstance().addMoney(player, (double) reward.money(), false, 1.0);
+
+
+        
     }
 }

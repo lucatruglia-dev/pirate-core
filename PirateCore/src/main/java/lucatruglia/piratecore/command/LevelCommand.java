@@ -9,9 +9,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import lucatruglia.piratecore.PirateCore;
-import lucatruglia.piratecore.managers.BossBarManager;
-import lucatruglia.piratecore.managers.LevelManager;
-import lucatruglia.piratecore.managers.PlayerManager;
+import lucatruglia.piratecore.managers.economy.LevelManager;
+import lucatruglia.piratecore.managers.player.BossBarManager;
+import lucatruglia.piratecore.managers.player.PlayerManager;
 import lucatruglia.piratecore.models.ListMessage;
 import lucatruglia.piratecore.models.PlayerData;
 import lucatruglia.piratecore.models.ListMessage.Row;

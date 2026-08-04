@@ -14,10 +14,10 @@ import com.gamingmesh.jobs.container.JobProgression;
 import com.gamingmesh.jobs.container.JobsPlayer;
 
 import lucatruglia.piratecore.PirateCore;
-import lucatruglia.piratecore.boat.InventoryManager;
-import lucatruglia.piratecore.managers.DatabaseManager;
-import lucatruglia.piratecore.managers.PlayerManager;
-import lucatruglia.piratecore.managers.RewardManager;
+import lucatruglia.piratecore.managers.boat.InventoryManager;
+import lucatruglia.piratecore.managers.economy.DatabaseManager;
+import lucatruglia.piratecore.managers.economy.RewardManager;
+import lucatruglia.piratecore.managers.player.PlayerManager;
 import lucatruglia.piratecore.models.PlayerData;
 import lucatruglia.piratecore.utils.Logs;
 import me.clip.placeholderapi.PlaceholderAPI;

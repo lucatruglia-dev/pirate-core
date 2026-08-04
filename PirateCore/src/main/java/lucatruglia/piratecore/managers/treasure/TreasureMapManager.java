@@ -1,4 +1,4 @@
-package lucatruglia.piratecore.managers;
+package lucatruglia.piratecore.managers.treasure;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -22,7 +22,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -36,10 +35,15 @@ import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.MapView;
 import org.bukkit.persistence.PersistentDataType;
 
-import lucatruglia.piratecore.CustomMapRender;
 import lucatruglia.piratecore.PirateCore;
-import lucatruglia.piratecore.models.ListMessage;
-import lucatruglia.piratecore.models.ListMessage.Row;
+import lucatruglia.piratecore.events.OnPlayerEndTreasureEvent;
+import lucatruglia.piratecore.events.OnPlayerFoundTreasureEvent;
+import lucatruglia.piratecore.events.OnPlayerStartTreasureEvent;
+import lucatruglia.piratecore.managers.ConfigManager;
+import lucatruglia.piratecore.managers.economy.RewardManager;
+import lucatruglia.piratecore.managers.player.PlayerManager;
+import lucatruglia.piratecore.models.Coordinate;
+import lucatruglia.piratecore.models.Reward;
 import lucatruglia.piratecore.utils.Logs;
 import lucatruglia.piratecore.utils.Utils;
 
@@ -67,21 +71,6 @@ public class TreasureMapManager {
     private String settingsPath = "settings/treasure.yml";
 
     private static RegionManager regions;
-
-    public static enum Rarity {
-        COMMON(0), RARE(1), EPIC(2), LEGENDARY(3);
-
-        private Rarity(int val) {
-            this.val = val;
-        }
-
-        private int val;
-
-        public int getVal() {
-            return this.val;
-        }
-
-    }
 
     public static TreasureMapManager getInstance() {
         if (instance == null) {
@@ -146,6 +135,11 @@ public class TreasureMapManager {
     }
 
     private void generateChestWithLoot(Location locationToPlaceBlock, Rarity rarity, UUID map_uuid, Player player) {
+
+        if(!locationToPlaceBlock.getChunk().isLoaded()){
+            locationToPlaceBlock.getChunk().load();
+        }
+
         Block block = locationToPlaceBlock.getBlock();
         block.setType(Material.CHEST);
 
@@ -228,27 +222,16 @@ public class TreasureMapManager {
         UUID missionUUID = UUID.fromString(
                 ConfigManager.getInstance().getString(filePath, player.getUniqueId().toString() + ".mission_UUID"));
 
-        // PREMIARE PLAYER
-        PlayerManager.getInstance().addXP(player, 100, false, 1.0);
-
-        Logs.sendListMessageToPlayer(
-                player,
-                new ListMessage(
-                        "Complimenti! hai trovato il tesoro (" + rarity.name() + ")",
-                        List.of(
-                                new ListMessage.Row("Attenzione",
-                                        "Hai " + Math.round(endMissionTimeInSeconds / 60)
-                                                + " minuti per prendere il bottino!"),
-                                new ListMessage.Row("XP", "+100 XP"),
-                                new ListMessage.Row("Dobloni", "+100 $")),
-                        List.of(
-                                new ListMessage.Button("Contrassegna come completata", ""))));
-
-        Logs.sendWarningActionBarToPlayer(player, "Attenzione",
-                "Hai " + Math.round(endMissionTimeInSeconds / 60) + " minuti per prendere il bottino!");
+        
+        OnPlayerFoundTreasureEvent event = new OnPlayerFoundTreasureEvent(player,rarity);
+        Bukkit.getServer().getPluginManager().callEvent(event);
+        
         new BukkitRunnable() {
             @Override
             public void run() {
+                OnPlayerEndTreasureEvent event = new OnPlayerEndTreasureEvent(player,rarity);
+                Bukkit.getServer().getPluginManager().callEvent(event);
+
                 TreasureMapManager.getInstance().removeMapOnInventory(player, missionUUID);
                 TreasureMapManager.getInstance().removeChest(player.getUniqueId());
                 TreasureMapManager.getInstance().removePlayerOnDB(player.getUniqueId());
@@ -274,6 +257,10 @@ public class TreasureMapManager {
         World world = PirateCore.get().getServer().getWorld(worldUUID);
         Location loc = new Location(world, chestPosition.get(0), chestPosition.get(1), chestPosition.get(2));
 
+        if(!loc.getChunk().isLoaded()){
+            loc.getChunk().load();
+        }
+
         ((Chest) loc.getBlock().getState()).getInventory().clear();
 
         loc.getBlock().setType(Material.AIR);
@@ -281,26 +268,14 @@ public class TreasureMapManager {
         Player p = PirateCore.get().getServer().getPlayer(playerUUID);
 
         if (p != null && p.isOnline()) {
-            Logs.sendWarningMessageToPlayer(p, "kMap", "Chest rimossa.");
+            //Logs.sendWarningMessageToPlayer(p, "kMap", "Chest rimossa.");
         }
     }
     // COMUNE, RARO, EPICO, LEGGENDARIO
 
     public void giveMap(Player player, Rarity rarity) {
-        ItemStack defaultMap = new ItemStack(Material.MAP);
-        ItemMeta defaultMapMeta = defaultMap.getItemMeta();
-
-        defaultMapMeta.setDisplayName("" + rarity.name() + " Map");
-        defaultMapMeta.getPersistentDataContainer().set(treasureMapKey, PersistentDataType.BOOLEAN, true);
-        defaultMapMeta.getPersistentDataContainer().set(rarityMapKey, PersistentDataType.STRING, rarity.name());
-        defaultMapMeta.getPersistentDataContainer().set(uuidMapKey, PersistentDataType.STRING,
-                UUID.randomUUID().toString());
-        defaultMapMeta.getPersistentDataContainer().set(playerUUIDMapKey, PersistentDataType.STRING,
-                player.getUniqueId().toString());
-
-        defaultMap.setItemMeta(defaultMapMeta);
-
-        player.getInventory().addItem(defaultMap);
+        TreasureMapItem map = new TreasureMapItem(rarity);
+        map.give(player);
     }
 
     public int[] getRandomLocation(Rarity rarity) {
@@ -385,20 +360,13 @@ public class TreasureMapManager {
 
             // 1. Controllo se è scaduta
             if (secondsLeft <= 0) {
-                Logs.sendSuccessActionBarToPlayer(player, "kMap", "Missione scaduta, la chest è despawnata.");
                 removeMapOnInventory(player, mapUUID);
                 removeChest(UUID.fromString(playerUuidStr));
                 removePlayerOnDB(UUID.fromString(playerUuidStr));
 
-            } else if (secondsLeft <= 100) {
+            } if (secondsLeft <= 100) {
                 Logs.sendWarningActionBarToPlayer(player, "kMap", "Attenzione, la missione scade tra pochi secondi.");
                 Logs.sendWarningMessageToPlayer(player, "kMap", "Attenzione, la missione scade tra pochi secondi.");
-            }
-
-            else {
-                int minutesLeft = (int) Math.round(secondsLeft / 60);
-                Logs.sendWarningActionBarToPlayer(player, "kMap",
-                        "Attenzione, la missione scade tra " + minutesLeft + " minuti.");
             }
         }
         return;
@@ -420,35 +388,12 @@ public class TreasureMapManager {
         toItem.setItemMeta(item2meta);
     }
 
-    private ItemStack generateFilledMap(Player player, int[] coord) {
-        MapView map = Bukkit.createMap(PirateCore.get().getServer().getWorld(worldUUID));
-        int x = coord[0];
-        int z = coord[1];
-
-        map.setCenterX(x);
-        map.setCenterZ(z);
-
-        map.setScale(MapView.Scale.FAR);
-
-        map.setTrackingPosition(false);
-
-        map.getRenderers().clear();
-
-        map.addRenderer(new CustomMapRender(Utils.coordToString(x, z)));
-
-        ItemStack map_item = new ItemStack(Material.FILLED_MAP);
-        MapMeta map_meta = (MapMeta) map_item.getItemMeta();
-
-        if (map_meta != null) {
-            map_meta.getPersistentDataContainer().set(filledMapKey, PersistentDataType.BOOLEAN, true);
-
-            map_meta.setMapView(map);
-
-            map_meta.setDisplayName("§aMappa del tesoro §e " + Utils.coordToString(x, z));
-            map_item.setItemMeta(map_meta);
-        }
-
-        return map_item;
+    private ItemStack generateFilledMap(Player player, int[] coord, ItemStack emptyMap) {
+        World world = Bukkit.getWorld(worldUUID);
+        TreasureMapFilled mapFilledObj = new TreasureMapFilled(world, player, coord);
+        ItemStack filledMap = mapFilledObj.getItem();
+        passPersistentData(emptyMap, filledMap);
+        return filledMap;
     }
 
     public boolean startTreasure(Player player, ItemStack map_item) {
@@ -464,11 +409,17 @@ public class TreasureMapManager {
         UUID map_uuid = UUID
                 .fromString(map_meta.getPersistentDataContainer().get(uuidMapKey, PersistentDataType.STRING));
 
+        int minimum_level = getMinimumLevel(rarity);
+        
+        if(!(PlayerManager.getInstance().getInfo(player).level() >= minimum_level)){
+            Logs.sendWarningMessageToPlayer(player, "kMap", "Per usare questa mappa devi essere almeno livello "+minimum_level+".");
+            return false;
+        }
+        
         int[] location = getRandomLocation(rarity);
         String stringLocation = Utils.coordToString(location[0], location[1]);
 
-        ItemStack filledMap = generateFilledMap(player, location);
-        passPersistentData(map_item, filledMap);
+        ItemStack filledMap = generateFilledMap(player, location, map_item);
         player.getInventory().setItemInMainHand(filledMap);
 
         Location locationToPlaceBlock = getSeabedBlock(location[0], location[1]);
@@ -476,24 +427,24 @@ public class TreasureMapManager {
 
         initTreasureOnDb(
                 player.getUniqueId(),
-                new int[] { locationToPlaceBlock.getBlockX(), locationToPlaceBlock.getBlockY(),
-                        locationToPlaceBlock.getBlockZ() },
-                rarity, map_uuid);
+                new int[] { locationToPlaceBlock.getBlockX(), locationToPlaceBlock.getBlockY(), locationToPlaceBlock.getBlockZ() },
+                rarity, 
+                map_uuid
+        );
 
-        player.teleport(locationToPlaceBlock.clone().add(0, 10, 0));
-        player.playSound(player, Sound.BLOCK_BELL_USE, 1.0f, 0.2f);
 
-        Logs.sendListMessageToPlayer(
-                player,
-                new ListMessage("Caccia al tesoro iniziata",
-                        new ArrayList<Row>(List.of(
-                                new ListMessage.Row("Rarità", rarity.name()),
-                                new ListMessage.Row("Coordinate", stringLocation),
-                                new ListMessage.Row("Tempo rimanente", "" + despawnChestTimeInMinutes + " minuti"))),
-                        new ArrayList<ListMessage.Button>(List.of(
-                                new ListMessage.Button("ANNULLA", "")))));
+        OnPlayerStartTreasureEvent event = new OnPlayerStartTreasureEvent(player, rarity, new Coordinate(location[0], location[1]), map_uuid);
+        Bukkit.getServer().getPluginManager().callEvent(event);
 
         return true;
+    }
+
+    public Reward getReward(Rarity rarity){
+        return RewardManager.getInstance().getTreasureReward(rarity);
+    }
+
+    public int getMinimumLevel(Rarity rarity){
+        return ConfigManager.getInstance().getInt("settings/treasure.yml", "treasure."+rarity.name()+".min_level");
     }
 
 }

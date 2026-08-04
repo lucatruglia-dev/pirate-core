@@ -1,4 +1,4 @@
-package lucatruglia.piratecore.managers;
+package lucatruglia.piratecore.managers.barrel;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
 
-import lucatruglia.piratecore.managers.BarrelManager;
+import lucatruglia.piratecore.managers.barrel.BarrelManager;
 
 public class ArmorStandListener implements Listener {
     

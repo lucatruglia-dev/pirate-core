@@ -1,8 +1,13 @@
-package lucatruglia.piratecore.managers;
+package lucatruglia.piratecore.managers.economy;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
+import lucatruglia.piratecore.managers.ConfigManager;
+import lucatruglia.piratecore.managers.player.PermissionManager;
+import lucatruglia.piratecore.managers.player.PlayerManager;
+import lucatruglia.piratecore.managers.treasure.Rarity;
+import lucatruglia.piratecore.models.Reward;
 import lucatruglia.piratecore.utils.Logs;
 
 public class RewardManager {
@@ -86,6 +91,13 @@ public class RewardManager {
         String basePath = "conditions.BARREL_DESTROYED.reward";
         double reward = data.getInt(basePath) * getRewardMultiplier(player);
         return reward;
+    }
+
+    public Reward getTreasureReward(Rarity rarity){
+        String index = "treasure." + rarity.name() +".rewards";
+        Double xp =  ConfigManager.getInstance().getDouble("settings/treasure.yml", index + ".xp");
+        Integer money = ConfigManager.getInstance().getInt("settings/treasure.yml", index + ".money");
+        return new Reward(xp,money);
     }
 
 }
