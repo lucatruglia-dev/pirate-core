@@ -5,12 +5,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import lucatruglia.piratecore.command.*;
 import lucatruglia.piratecore.extensions.*;
+import lucatruglia.piratecore.gui.GUIListener;
 import lucatruglia.piratecore.listeners.*;
 import lucatruglia.piratecore.managers.*;
 import lucatruglia.piratecore.managers.barrel.AnimationManager;
 import lucatruglia.piratecore.managers.barrel.AutoSpawnerManager;
 import lucatruglia.piratecore.managers.barrel.BarrelManager;
 import lucatruglia.piratecore.managers.boat.BoatManager;
+import lucatruglia.piratecore.managers.boat.BoatTrailManager;
 import lucatruglia.piratecore.managers.boat.InventoryManager;
 import lucatruglia.piratecore.managers.boat.PlayerInteractWithBoat;
 import lucatruglia.piratecore.managers.economy.DatabaseManager;
@@ -31,6 +33,7 @@ import org.bukkit.plugin.Plugin;
 public class Loader {
 
     public static void loadManagers(JavaPlugin plugin) {
+        try { BoatTrailManager.getInstance().initialize(); } catch (Exception e) { logAndThrow(plugin, "BoatTrailManager", e); }
         try { TimerManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "TimerManager", e); }
         try { AutoSpawnerManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "AutoSpawnerManager", e); }
         try { InventoryManager.getInstance().initialize(plugin); } catch (Exception e) { logAndThrow(plugin, "InventoryManager", e); }
@@ -66,6 +69,10 @@ public class Loader {
         plugin.getServer().getPluginManager().registerEvents(new OnPlayerStartTreasureListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new OnPlayerEndTreasureListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new OnPlayerFoundTreasureListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new BoatRideListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new OnPlayerJoinOnHisChestBoatListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new OnPlayerLeftOnHisChestBoatListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new GUIListener(), plugin);
     }
 
     public static void loadCommands(JavaPlugin plugin) {
@@ -74,6 +81,7 @@ public class Loader {
         registerCommand(plugin, "kbarrel", new BarrelCommand());
         registerCommand(plugin, "kmap", new MapCommand());
         registerCommand(plugin, "kboat", new BoatCommand());
+        registerCommand(plugin, "ktrail", new TrailCommand());
     }
 
     public static void loadTasks(JavaPlugin plugin){

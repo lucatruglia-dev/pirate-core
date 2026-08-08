@@ -31,8 +31,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.map.MapView;
 import org.bukkit.persistence.PersistentDataType;
 
 import lucatruglia.piratecore.PirateCore;
@@ -417,7 +415,7 @@ public class TreasureMapManager {
         }
         
         int[] location = getRandomLocation(rarity);
-        String stringLocation = Utils.coordToString(location[0], location[1]);
+        // String stringLocation = Utils.coordToString(location[0], location[1]);
 
         ItemStack filledMap = generateFilledMap(player, location, map_item);
         player.getInventory().setItemInMainHand(filledMap);

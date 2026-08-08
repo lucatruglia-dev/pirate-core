@@ -3,7 +3,7 @@ version: 1.0.0
 name: PirateCore
 author: lucatruglia
 api-version: 1.21
-softdepend: [PlaceholderAPI, Jobs]
+softdepend: [PlaceholderAPI, Jobs, rlTrails]
 depend: [Vault, ItemEdit, WorldGuard]
 
 
@@ -21,5 +21,8 @@ commands:
     description: "level command"
     usage: "/kmap"
   kboat:
+    description: "level command"
+    usage: "/kboat"
+  ktrail:
     description: "level command"
     usage: "/kboat"

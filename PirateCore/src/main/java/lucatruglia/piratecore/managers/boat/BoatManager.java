@@ -1,17 +1,19 @@
 package lucatruglia.piratecore.managers.boat;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.ChestBoat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.boat.OakChestBoat;
 import org.bukkit.persistence.PersistentDataType;
 
 import lucatruglia.piratecore.PirateCore;
+import lucatruglia.piratecore.events.OnPlayerJoinOnHisChestBoatEvent;
+import lucatruglia.piratecore.events.OnPlayerLeftOnHisChestBoatEvent;
 import lucatruglia.piratecore.managers.ConfigManager;
 import lucatruglia.piratecore.utils.Logs;
 
@@ -34,7 +36,67 @@ public class BoatManager {
         this.data = ConfigManager.getInstance().getConfig(filePath);
         this.isPlayerBoatKey = new NamespacedKey(PirateCore.get(), "isPlayerBoat");
         this.ownerUuidKey = new NamespacedKey(PirateCore.get(), "ownerUUID");
+
         instance = this;
+    }
+
+    public List<String> getAvailableTrails(Player player){
+        String playerUUID = player.getUniqueId().toString();
+        return data.getStringList(playerUUID+".available_trails");
+    }
+
+    public void addAvailableTrail(Player player, String trailID){
+        List<String> available_trails = getAvailableTrails(player);
+        String playerUUID = player.getUniqueId().toString();
+        available_trails.add(trailID);
+        ConfigManager.getInstance().set(filePath, playerUUID+".available_trails", available_trails);
+        reloadData();
+    }
+
+    public void removeAvailableTrails(Player player, String trailID){
+        String playerUUId = player.getUniqueId().toString();
+        List<String> available_trails = getAvailableTrails(player);
+        available_trails.remove(trailID);
+        ConfigManager.getInstance().set(filePath, playerUUId+".available_trails", available_trails);
+        reloadData();
+    }
+
+    public Boolean isAvailableTrails(Player player, String trailID){
+        List<String> avilableList = getAvailableTrails(player);
+        if(avilableList == null | avilableList.isEmpty()){
+            return false;
+        }
+        return avilableList.contains(trailID);
+    }
+
+    public List<String> getActivedTrails(Player player){
+        String playerUUId = player.getUniqueId().toString();
+        return data.getStringList(playerUUId + ".active_trails");
+    }
+
+    public boolean addActiveTrails(Player player, String traildID){
+        if(!isAvailableTrails(player, traildID)){
+            return false;
+        }
+
+        String playerUUId = player.getUniqueId().toString();
+        List<String> active_trails = getActivedTrails(player);
+        active_trails.add(traildID);
+        ConfigManager.getInstance().set(filePath, playerUUId+".active_trails", active_trails);
+        reloadData();
+        return true;
+    }
+
+    public void removeActiveTrails(Player player, String trailID){
+        String playerUUId = player.getUniqueId().toString();
+        List<String> active_trails = getActivedTrails(player);
+        active_trails.remove(trailID);
+        ConfigManager.getInstance().set(filePath, playerUUId+".active_trails", active_trails);
+        reloadData();
+    }
+
+    public void reloadData(){
+        this.data = ConfigManager.getInstance().getConfig(filePath);
     }
 
     private boolean isPlayerOnDb(Player player){
@@ -110,13 +172,55 @@ public class BoatManager {
         return false;
     }
 
-    public void spawnBoat(Player player) {
-        Location loc = player.getLocation();
-        OakChestBoat chestBoat = loc.getWorld().spawn(loc, OakChestBoat.class);
-        Logs.sendSuccessMessageToPlayer(player, "Boat", "" + chestBoat.getUniqueId().toString());
+    public Boolean playerRideBoat(Player player, UUID boatUUID){
+        Entity boatEntity = Bukkit.getEntity(boatUUID);
+        if(boatEntity == null){
+            return false;
+        }
+        ChestBoat boat = (ChestBoat) boatEntity;
+        UUID playerUUID = player.getUniqueId();
+        UUID onwerboatUUID = UUID.fromString(boat.getPersistentDataContainer().get(ownerUuidKey, PersistentDataType.STRING));
 
-        chestBoat.getPersistentDataContainer().set(isPlayerBoatKey, PersistentDataType.BOOLEAN, true);
-        chestBoat.getPersistentDataContainer().set(ownerUuidKey, PersistentDataType.STRING, player.getUniqueId().toString());
+        if(playerUUID == null || onwerboatUUID == null){
+            return false;
+        }
+
+        if(playerUUID.equals(onwerboatUUID)){
+            Boat boat_temp = new Boat(player, BoatType.DEFAULT, getActivedTrails(player));
+            OnPlayerJoinOnHisChestBoatEvent event = new OnPlayerJoinOnHisChestBoatEvent(player, boat_temp);
+            Bukkit.getServer().getPluginManager().callEvent(event);
+            return true;
+        }
+
+        return false;
+    }
+
+    public void playerLeftBoat(Player player, UUID boatUUID){
+        Entity boatEntity = Bukkit.getEntity(boatUUID);
+        if(boatEntity == null){
+            return;
+        }
+        ChestBoat boat = (ChestBoat) boatEntity;
+        UUID playerUUID = player.getUniqueId();
+        UUID onwerboatUUID = UUID.fromString(boat.getPersistentDataContainer().get(ownerUuidKey, PersistentDataType.STRING));
+
+        if(playerUUID == null || onwerboatUUID == null){
+            return;
+        }
+
+        if(playerUUID.equals(onwerboatUUID)){
+            Boat boat_temp = new Boat(player, BoatType.DEFAULT, getActivedTrails(player));
+            OnPlayerLeftOnHisChestBoatEvent event = new OnPlayerLeftOnHisChestBoatEvent(player, boat_temp);
+            Bukkit.getServer().getPluginManager().callEvent(event);
+            return;
+        }
+
+    }
+
+    public void spawnBoat(Player player) {
+        Boat boat = new Boat(player, BoatType.DEFAULT, getActivedTrails(player));
+        boat.spawnBoat();
+        ChestBoat chestBoat = boat.getChestBoat();
 
         initializePlayer(player);
         despawnOldBoat(player);
